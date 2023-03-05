@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %}
+      <section class="jumbotron text-center">
+        <div class="container">
+          <h1 class="jumbotron-heading">www.tactification.com</h1>
+	  <blockquote class="blockquote"><em>Football timetravelling.</em></blockquote>
+        </div>
+      </section>
+
+
+      <div class="album py-5 bg-light">
+        <div class="container">
+
+          <div class="row">
+            {% for post in posts %}  
+                <div class="col-md-4">
+                  <div class="card text-dark bg-primary mb-4">
+                    <a href="{{ url_for('main.post', id=post.id, header=post.header) }}">
+                      <div class="card-body">
+                          <h5 class="card-title text-white text-center">{{ post.header }}</h5>
+                      </div>
+                  </div>
+                </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+{% endblock %}
