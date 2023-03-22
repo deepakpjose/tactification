@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-      <section class="jumbotron text-center">
+      <section class="jumbotron bg-white text-center">
         <div class="container">
           <h1 class="jumbotron-heading">www.tactification.com</h1>
 	  <blockquote class="blockquote"><em>Football timetravelling.</em></blockquote>
@@ -9,22 +9,19 @@
       </section>
 
 
-      <div class="album py-5 bg-light">
-        <div class="container">
-
-          <div class="row">
-            {% for post in posts %}  
-                <div class="col-md-4">
-                  <div class="card text-dark bg-primary mb-4">
-                    <a href="{{ url_for('main.post', id=post.id, header=post.header) }}">
-                      <div class="card-body">
-                          <h5 class="card-title text-white text-center">{{ post.header }}</h5>
-                      </div>
-                  </div>
-                </div>
-            {% endfor %}
-          </div>
+    {% for post in posts %}
+        <div class="row justify-content-end">
+            <div class="col-2">
+                <a href="{{ url_for('main.post', id=post.id, header=post.header) }}">
+                    <h6 class="font-weight-normal text-dark text-left">{{ post.post_date_in_isoformat() }}</h6>
+                </a>
+            </div> 
+            <div class="col-10">
+                <a href="{{ url_for('main.post', id=post.id, header=post.header) }}">
+                    <h6 class="font-weight-normal text-dark text-left">{{ post.header }}</h6>
+                </a>
+            </div> 
         </div>
-      </div>
+    {% endfor %}
 
 {% endblock %}

@@ -259,8 +259,15 @@ class Post(db.Model):
         date_str = self.timestamp
         month = self.month_of_date(date_str.month)
 
-        return "{:d} {:s}, {:d}".format(date_str.day, month, date_str.year)
+        #day with single date and two date causes alignment in display.
+        #Hence adding a 0 for day's with single digit.
+        day = str(date_str.day)
+        if len(day) == 1:
+            day = '0{:s}'.format(day)
+        else:
+            day = '{:s}'.format(day)
 
+        return "{:s} {:s}, {:d}".format(day, month, date_str.year)
 
 @login_manager.user_loader
 def load_user(user_id):
