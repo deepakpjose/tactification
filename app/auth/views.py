@@ -2,6 +2,7 @@
 All custom login and logout apis are defined here.
 """
 import os
+import sys
 import logging
 from flask import (
     redirect,
@@ -65,18 +66,39 @@ def poster_delete(post):
     logging.info('file deletion {:s} is success'.format(post.doc))
     return
 
-def poster_update(post, path, f):
+def poster_create(post, path, f):
     filename = 'tactification_' + str(post.id) + f.filename
     absolute_path = os.path.join(path, filename)
-    logging.info('path: {:s} filename: {:s}'.format(path, absolute_path))
+    logging.info('poster_create path: {:s} filename: {:s}'.format(path, absolute_path))
 
     f.save(absolute_path)
+    uploaded_file_url = url_for("main.download_file", id=post.id, filename=filename)
+    post.doc = absolute_path 
+    post.url = uploaded_file_url
+    post.show()
+    return True
+
+def poster_update(post, path, f):
+    filename = 'tactification_' + str(post.id) + f.filename
+
+    try:
+        # Check if file already exists.
+        if (os.path.exists(post.doc) and os.path.isfile(post.doc) is False):
+            raise NameError
+        #remove the current file
+        os.remove(post.doc)
+        #add new file.
+        absolute_path = os.path.join(path, filename)
+        logging.info('poster_update path: {:s} filename: {:s}'.format(path, absolute_path))
+        f.save(absolute_path)
+    except:
+        return False
 
     uploaded_file_url = url_for("main.download_file", id=post.id, filename=filename)
     post.doc = absolute_path 
     post.url = uploaded_file_url
-    return
-
+    post.show()
+    return True
 
 @auth.route("/writeposters", methods=["GET", "POST"])
 @login_required
@@ -94,13 +116,9 @@ def writeposters():
 
         if filename and allowed_file(filename):
             try:
-                post = Post(
-                    body=body,
-                    header=header,
-                    description=description,
-                    tags=tags,
-                    post_type=PostType.POSTER,
-                )
+                #Create the object post of class Post.
+                post = Post(body=body, header=header, description=description,
+                            tags=tags, post_type=PostType.POSTER)
             except:
                 return render_template("error.html", msg="Poster creation failed")
 
@@ -109,7 +127,9 @@ def writeposters():
 
             path = "{:s}".format(app.config["UPLOAD_FOLDER"])
             print("directory:{:s} id={:s}", path, post.id)
-            poster_update(post, path, f)
+            if poster_create(post, path, f) is False:
+                flash("Failed creating file in upload folder")
+                return redirect(url_for("auth.writeposters"))
 
             db.session.add(post)
             db.session.commit()
@@ -117,7 +137,7 @@ def writeposters():
             flash("Created post")
             return redirect(request.args.get("next") or url_for("main.index"))
 
-        flash("Failed creating post")
+        flash("Unacceptable file type")
         return redirect(url_for("auth.writeposters"))
 
     return render_template("writeposter.html", posterform=posterform)
@@ -149,7 +169,8 @@ def editposters(id):
                 msg = "Poster editing failed: {:s}".format(sys.exc_info()[0])
                 return render_template("error.html", msg=msg)
 
-            poster_update(post, f)
+            path = "{:s}".format(app.config["UPLOAD_FOLDER"])
+            poster_update(post, path, f)
 
             db.session.add(post)
             db.session.commit()
