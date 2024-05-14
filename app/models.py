@@ -1,6 +1,7 @@
 """
 all db classes and attributes are defined in this function
 """
+import logging
 from datetime import datetime
 from random import sample
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -268,6 +269,14 @@ class Post(db.Model):
             day = '{:s}'.format(day)
 
         return "{:s} {:s}, {:d}".format(day, month, date_str.year)
+
+    def show(self):
+        '''
+        To display the contents of a post.
+        '''
+        post_info = 'Id: {id} header: {header} path: {path} url: {url}'
+        logging.info(post_info.format(id=self.id, header=self.header, path=self.doc, url=self.url))
+        return
 
 @login_manager.user_loader
 def load_user(user_id):

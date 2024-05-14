@@ -2,6 +2,8 @@
 All custom login and logout apis are defined here.
 """
 import os
+import sys
+import traceback
 import logging
 from flask import (
     redirect,
@@ -18,7 +20,7 @@ from app import db, app
 from app.auth import auth
 from app.models import User, Permission, Role, Post, PostType
 from werkzeug.utils import secure_filename
-from app.auth.forms import LoginForm, PosterCreateForm
+from app.auth.forms import LoginForm, PosterCreateForm, PosterEditForm
 from app.auth.decorators import permission_required
 from app.auth.utils import allowed_file
 
@@ -65,18 +67,39 @@ def poster_delete(post):
     logging.info('file deletion {:s} is success'.format(post.doc))
     return
 
-def poster_update(post, path, f):
+def poster_create(post, path, f):
     filename = 'tactification_' + str(post.id) + f.filename
     absolute_path = os.path.join(path, filename)
-    logging.info('path: {:s} filename: {:s}'.format(path, absolute_path))
+    logging.info('poster_create path: {:s} filename: {:s}'.format(path, absolute_path))
 
     f.save(absolute_path)
+    uploaded_file_url = url_for("main.download_file", id=post.id, filename=filename)
+    post.doc = absolute_path 
+    post.url = uploaded_file_url
+    post.show()
+    return True
+
+def poster_update(post, path, f):
+    filename = 'tactification_' + str(post.id) + f.filename
+
+    try:
+        # Check if file already exists.
+        if (os.path.exists(post.doc) and os.path.isfile(post.doc) is False):
+            raise NameError
+        #remove the current file
+        os.remove(post.doc)
+        #add new file.
+        absolute_path = os.path.join(path, filename)
+        logging.info('poster_update path: {:s} filename: {:s}'.format(path, absolute_path))
+        f.save(absolute_path)
+    except:
+        return False
 
     uploaded_file_url = url_for("main.download_file", id=post.id, filename=filename)
     post.doc = absolute_path 
     post.url = uploaded_file_url
-    return
-
+    post.show()
+    return True
 
 @auth.route("/writeposters", methods=["GET", "POST"])
 @login_required
@@ -94,13 +117,9 @@ def writeposters():
 
         if filename and allowed_file(filename):
             try:
-                post = Post(
-                    body=body,
-                    header=header,
-                    description=description,
-                    tags=tags,
-                    post_type=PostType.POSTER,
-                )
+                #Create the object post of class Post.
+                post = Post(body=body, header=header, description=description,
+                            tags=tags, post_type=PostType.POSTER)
             except:
                 return render_template("error.html", msg="Poster creation failed")
 
@@ -109,7 +128,9 @@ def writeposters():
 
             path = "{:s}".format(app.config["UPLOAD_FOLDER"])
             print("directory:{:s} id={:s}", path, post.id)
-            poster_update(post, path, f)
+            if poster_create(post, path, f) is False:
+                flash("Failed creating file in upload folder")
+                return redirect(url_for("auth.writeposters"))
 
             db.session.add(post)
             db.session.commit()
@@ -117,7 +138,7 @@ def writeposters():
             flash("Created post")
             return redirect(request.args.get("next") or url_for("main.index"))
 
-        flash("Failed creating post")
+        flash("Unacceptable file type")
         return redirect(url_for("auth.writeposters"))
 
     return render_template("writeposter.html", posterform=posterform)
@@ -127,42 +148,61 @@ def writeposters():
 @login_required
 @permission_required(Permission.WRITE_ARTICLES)
 def editposters(id):
-    posterform = PosterCreateForm()
+    #Find the post and get the post form. Return for any errors.
+    try:
+        post = Post.query.get_or_404(id)
+        posterform = PosterEditForm(obj=post)
+        posterform.show()
+    except:
+        print(traceback.format_exc())
+        post_err_string = 'ID: {id} not found to edit'
+        logging.info(post_err_string.format(id=id))
+        return redirect(url_for("auth.writeposters"))
 
+    #Do all the needful while submitting.
     if posterform.validate_on_submit():
         header = posterform.header.data
         body = posterform.body.data
-        description = posterform.desc.data
+        description = posterform.description.data
         tags = posterform.tags.data
-        f = posterform.poster.data
-        filename = secure_filename(f.filename)
-
-        if filename and allowed_file(filename):
-            try:
-                post = Post.query.get_or_404(id)
-                post.body = body
-                post.header = header
-                post.description = description
-                post.tags = tags
-                post.post_type = PostType.POSTER
+        #Do the needful if form has poster file passed.
+        if bool(posterform.poster.data):
+            try: 
+                f = posterform.poster.data
+                filename = secure_filename(f.filename)
+                if allowed_file(filename) == False:
+                    raise NotImplemented
             except:
-                msg = "Poster editing failed: {:s}".format(sys.exc_info()[0])
-                return render_template("error.html", msg=msg)
+                posterform.show()
+                post_err_string = 'filename: {filename} has issues'
+                logging.info(post_err_string.format(filename=filename))
+                return redirect(url_for("auth.writeposters"))
 
-            poster_update(post, f)
+        #Update the post field in the db.
+        try:
+            post.body = body
+            post.header = header
+            post.description = description
+            post.tags = tags
+            post.post_type = PostType.POSTER
+            if bool(posterform.poster.data):
+                path = "{:s}".format(app.config["UPLOAD_FOLDER"])
+                poster_update(post, path, f)
+        except:
+            msg = "Poster editing failed: {:s}".format(sys.exc_info()[0])
+            return render_template("error.html", msg=msg)
 
-            db.session.add(post)
-            db.session.commit()
-            flash("Edited post")
-            return redirect(
-                request.args.get("next")
-                or url_for("main.post", id=post.id, header=post.header)
-            )
+        db.session.add(post)
+        db.session.commit()
+        flash("Edited post")
+        return redirect(
+            request.args.get("next")
+            or url_for("main.post", id=post.id, header=post.header)
+        )
 
-        flash("Failed finding post")
-        return redirect(url_for("auth.writeposters"))
-
-    return render_template("writeposter.html", posterform=posterform)
+    #Populate the form with the object's data.
+    posterform.populate_obj(post)
+    return render_template("editposter.html", posterform=posterform)
 
 @auth.route("/deleteposters/<int:id>", methods=["GET", "POST"])
 @login_required
