@@ -20,13 +20,28 @@
               <p>{{ markup }}</p>
           </div><!-- /.blog-post -->
 
-        <div class="text-center">
+          <div class="text-center">
 	          <a href="https://twitter.com/intent/tweet?text={{ post.header }}%20{{ url_for('.post', id=post.id, header=post.header, _external=True) }}%20by%20@deepakpjose">
                 <button type="button" class="btn btn-primary">Tweet</button>
             </a>
 
           </div>
           <br>
+          <script src="https://giscus.app/client.js"
+            data-repo="deepakpjose/giscus_tactification"
+            data-repo-id="R_kgDOMAyhDw"
+            data-category="tactification post comments"
+            data-category-id="DIC_kwDOMAyhD84Cfnoe"
+            data-mapping="pathname"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="0"
+            data-input-position="top"
+            data-theme="preferred_color_scheme"
+            data-lang="en"
+            crossorigin="anonymous"
+            async>
+          </script>
           <br>
           <br>
         </div><!-- /.blog-main -->
