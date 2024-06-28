@@ -37,6 +37,11 @@ def index():
 
     return render_template("index.html", posts=posts)
 
+@main.route("/videos", methods=["GET"])
+def videos():
+    app.logger.info('Hello tactification.com/articles')
+
+    return render_template("videos.html")
 
 @main.route("/post/<int:id>/<string:header>", methods=["GET", "POST"])
 def post(id, header):

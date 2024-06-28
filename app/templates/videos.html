@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <main role="main">
+      <div class="row">
+        <div class="col-md-12 blog-main">
+          <div class="blog-post">
+              <h2 class="blog-post-title">Tactification</h2>
+				  <hr>
+					  <!--div-->
+					  <div class="text-center">
+              <iframe width="560" height="315" src="https://www.youtube.com/embed/Oaxnk-Si61Y?si=rfLdgSx7Y9rR_Ywh" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+              <figcaption class="figure-caption">Maradona's Wonder Goal against England</figcaption>
+					  </div>
+					  <!--div-->
+				  <hr>
+              <p>{{ markup }}</p>
+          </div><!-- /.blog-post -->
+
+          <br>
+          <script src="https://giscus.app/client.js"
+            data-repo="deepakpjose/giscus_tactification"
+            data-repo-id="R_kgDOMAyhDw"
+            data-category="tactification post comments"
+            data-category-id="DIC_kwDOMAyhD84Cfnoe"
+            data-mapping="pathname"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="0"
+            data-input-position="top"
+            data-theme="preferred_color_scheme"
+            data-lang="en"
+            crossorigin="anonymous"
+            async>
+          </script>
+          <br>
+          <br>
+        </div><!-- /.blog-main -->
+      </div><!-- /.row -->
+
+    </main><!-- /.container -->
+{% endblock %}
