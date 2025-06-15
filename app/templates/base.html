@@ -34,10 +34,13 @@
                         <a class="nav-link" href="http://www.tactification.com">Tactification</a>
                     </li>
                     <li class="nav-item active">
-                        <a class="nav-link" href="https://twitter.com/tactification1">Twitter</a>
+                        <a class="nav-link" href="http://www.tactification.com">Home</a>
                     </li>
                     <li class="nav-item active">
-                        <a class="nav-link" href="https://www.youtube.com/channel/UCFH1LgC-SJ63ZDu8UtLgikg">Youtube</a>
+                        <a class="nav-link" href="{{ url_for('main.postindex')}}">Articles</a>
+                    </li>
+                    <li class="nav-item active">
+                        <a class="nav-link" href="{{ url_for('main.triviasindex')}}">Trivias</a>
                     </li>
                 </ul>
             </div>
@@ -54,6 +57,8 @@
     	    <!-- copyright --!>
             <div class="footer-copyright text-center"> &copy; 2021–<script>document.write(new Date().getFullYear())</script> <a href="http://tactification.com" title="Written by
                 Deepak P Jose">www.tactification.com</a>
+              <a href="https://www.youtube.com/channel/UCFH1LgC-SJ63ZDu8UtLgikg"> Youtube</a>
+              <a href="https://x.com/deepakpjose"> Twitter</a>
             </div>
     	    <!-- copyright --!>
         </footer>

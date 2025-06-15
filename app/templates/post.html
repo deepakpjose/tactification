@@ -27,6 +27,24 @@
 
           </div>
           <br>
+
+          <hr class="my-4">
+          <div class="row"> <!-- This block is the row that contains the related posts -->
+            <div class="col-md-2 col-4 mb-3">
+              <h4 class="text-center">More Posts</h4>
+            </div>
+
+            {% for post in random_posts %}
+              <div class="col-md-2 col-4 mb-3">
+                <a href="{{ url_for('main.post', id=post.id, header=post.header) }}" class="text-decoration-none">
+                  <img src="{{ post.url }}" alt="{{ post.header }} thumbnail" class="img-fluid rounded mb-2" style="width: 200px; height: 100px; object-fit: cover;">
+                  <div class="text-center">{{ post.header }}</div>
+                </a>
+              </div>
+            {% endfor %}
+          </div>
+          <hr class="my-4">
+
           <script src="https://giscus.app/client.js"
             data-repo="deepakpjose/giscus_tactification"
             data-repo-id="R_kgDOMAyhDw"

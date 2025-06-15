@@ -32,6 +32,7 @@ class PostType:
     BLOG = 0x1
     ZINES = 0x2
     POSTER = 0x4
+    TRIVIA = 0x8
 
 
 # pg112
@@ -276,6 +277,45 @@ class Post(db.Model):
         '''
         post_info = 'Id: {id} header: {header} path: {path} url: {url}'
         logging.info(post_info.format(id=self.id, header=self.header, path=self.doc, url=self.url))
+        return
+
+class Trivia(db.Model):
+    """
+    All trivia data is stored here.
+    """
+
+    __tablename__ = "trivias"
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.DateTime, index=True)
+    body = db.Column(db.Text)
+    header = db.Column(db.String(32))
+    author_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    tags = db.Column(db.String(64))
+    post_type = db.Column(db.Integer)
+
+    def month_of_date(self, month):
+        return _MONTHNAMES[month]
+
+    def trivia_date_in_isoformat(self):
+        date_str = self.date
+        month = self.month_of_date(date_str.month)
+
+        # Day with single digit and two digits causes alignment in display.
+        # Hence adding a 0 for days with single digit.
+        day = str(date_str.day)
+        if len(day) == 1:
+            day = '0{:s}'.format(day)
+        else:
+            day = '{:s}'.format(day)
+
+        return "{:s} {:s}, {:d}".format(day, month, date_str.year)
+
+    def show(self):
+        """
+        To display the contents of a trivia.
+        """
+        trivia_info = 'Id: {id} header: {header}'
+        logging.info(trivia_info.format(id=self.id, header=self.header, url=self.url))
         return
 
 @login_manager.user_loader

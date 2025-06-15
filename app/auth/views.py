@@ -18,9 +18,9 @@ from flask import (
 from flask_login import current_user, login_required, login_user, logout_user
 from app import db, app
 from app.auth import auth
-from app.models import User, Permission, Role, Post, PostType
+from app.models import User, Permission, Role, Post, PostType, Trivia
 from werkzeug.utils import secure_filename
-from app.auth.forms import LoginForm, PosterCreateForm, PosterEditForm
+from app.auth.forms import LoginForm, PosterCreateForm, PosterEditForm, TriviaCreateForm, TriviaEditForm
 from app.auth.decorators import permission_required
 from app.auth.utils import allowed_file
 
@@ -220,4 +220,88 @@ def deleteposters(id):
     db.session.commit()
 
     logging.info('file deletion {:s} from db is success'.format(post.doc))
+    return redirect(request.args.get("next") or url_for("main.index"))
+
+@auth.route("/writetrivias", methods=["GET", "POST"])
+@login_required
+@permission_required(Permission.WRITE_ARTICLES)
+def writetrivias():
+    triviaform = TriviaCreateForm()
+
+    if triviaform.validate_on_submit():
+        header = triviaform.header.data
+        body = triviaform.body.data
+        tags = triviaform.tags.data
+        date = triviaform.date.data
+
+        try:
+            # Create the object trivia of class Post with PostType.TRIVIA.
+            trivia = Trivia(body=body, header=header,
+                            tags=tags, date=date, post_type=PostType.TRIVIA)
+        except Exception as e:
+            logging.error(f"Error occurred while creating trivia: {e}")
+            traceback.print_exc()
+            return render_template("error.html", msg="Trivia creation failed")
+
+        db.session.add(trivia)
+        db.session.commit()
+
+        flash("Created trivia")
+        return redirect(request.args.get("next") or url_for("main.index"))
+
+    return render_template("writetrivia.html", triviaform=triviaform)
+
+@auth.route("/edittrivias/<int:id>", methods=["GET", "POST"])
+@login_required
+@permission_required(Permission.WRITE_ARTICLES)
+def edittrivias(id):
+    try:
+        trivia = Trivia.query.get_or_404(id)
+        triviaform = TriviaEditForm(obj=trivia)
+    except:
+        print(traceback.format_exc())
+        trivia_err_string = 'ID: {id} not found to edit'
+        logging.info(trivia_err_string.format(id=id))
+        return redirect(url_for("auth.writetrivias"))
+
+    if triviaform.validate_on_submit():
+        header = triviaform.header.data
+        body = triviaform.body.data
+        tags = triviaform.tags.data
+        date = triviaform.date.data
+
+        try:
+            trivia.body = body
+            trivia.header = header
+            trivia.tags = tags
+            trivia.date = date
+        except:
+            msg = "Trivia editing failed: {:s}".format(sys.exc_info()[0])
+            return render_template("error.html", msg=msg)
+        
+        db.session.add(trivia)
+        db.session.commit()
+        flash(f"Edited trivia with ID: {trivia.id}")
+        return redirect(
+            request.args.get("next")
+            or url_for("main.trivia", id=trivia.id, header=trivia.header)
+        )
+    
+    triviaform.populate_obj(trivia)
+    return render_template("edittrivia.html", triviaform=triviaform)
+
+@auth.route("/deletetrivias/<int:id>", methods=["GET", "POST"])
+@login_required
+@permission_required(Permission.WRITE_ARTICLES)
+def deletetrivias(id):
+    logging.info('Deleting trivia: {:d}'.format(id))
+    try:
+        trivia = Trivia.query.get_or_404(id)
+    except:
+        msg = "Trivia deletion failed"
+        return render_template("error.html", msg=msg)
+
+    db.session.delete(trivia)
+    db.session.commit()
+
     return redirect(request.args.get("next") or url_for("main.index"))

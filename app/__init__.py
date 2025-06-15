@@ -1,3 +1,5 @@
+import sys
+import logging
 from flask import Flask, render_template
 from flask_bootstrap import Bootstrap
 from flask_wtf import CSRFProtect
@@ -68,6 +70,5 @@ def external_url_handler(error, endpoint, values):
             raise error
     # url_for will use this result, instead of raising BuildError.
     return url
-
 
 app.url_build_error_handlers.append(external_url_handler)

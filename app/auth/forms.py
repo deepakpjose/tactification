@@ -8,6 +8,7 @@ from wtforms import (
     SubmitField,
     FileField,
     TextAreaField,
+    DateField
 )
 from wtforms.validators import DataRequired, Length, Email, Regexp, EqualTo
 from wtforms import ValidationError, validators
@@ -43,6 +44,31 @@ class PosterEditForm(FlaskForm):
         if bool(self.poster.data):
             poster_fields = 'poster: {filename}'
             logging.info(poster_fields.format(filename=self.poster.data.filename))
+        return
+
+class TriviaCreateForm(FlaskForm):
+    header = StringField("Header", [validators.Length(min=1, max=255)])
+    body = TextAreaField(
+        "Body", [validators.Length(min=1)], render_kw={"rows": 10, "cols": 81}
+    )
+    tags = StringField("Tags", [validators.Length(min=1, max=255)])
+    date = DateField("Date", format='%Y-%m-%d', validators=[DataRequired()])
+    submit = SubmitField("Submit")
+
+class TriviaEditForm(FlaskForm):
+    header = StringField("Header", [validators.Length(min=1, max=255)])
+    body = TextAreaField(
+        "Body", [validators.Length(min=1)], render_kw={"rows": 10, "cols": 81}
+    )
+    tags = StringField("Tags", [validators.Length(min=1, max=255)])
+    date = DateField("Date", format='%Y-%m-%d', validators=[DataRequired()])
+    submit = SubmitField("Submit")
+
+    def show(self):
+        logging.info(f"header: {self.header.data}")
+        logging.info(f"body: {self.body.data}")
+        logging.info(f"tags: {self.tags.data}")
+        logging.info(f"date: {self.date.data}")
         return
 
 class LoginForm(FlaskForm):
