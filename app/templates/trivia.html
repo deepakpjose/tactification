@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <main role="main">
+      <div class="row">
+        <div class="col-md-12 blog-main">
+          <div class="blog-post">
+              <h2 class="blog-post-title">{{ post.header }}</h2>
+			  <button type="button" class="btn btn-light">{{ post.post_date_in_isoformat() }}</button>
+				  <hr>
+					  <!--div-->
+					  <div class="text-center">
+						   <figure class="figure">
+							   <img id="postImg" src="{{ post.url }}" class="figure-img img-fluid rounded mx-auto d-block" alt="Responsive image">
+							   <figcaption class="figure-caption">{{ post.description }}</figcaption>
+						   </figure>
+					  </div>
+					  <!--div-->
+				  <hr>
+              <p>{{ markup }}</p>
+          </div><!-- /.blog-post -->
+
+          <div class="text-center">
+	          <a href="https://twitter.com/intent/tweet?text={{ post.header }}%20{{ url_for('.post', id=post.id, header=post.header, _external=True) }}%20by%20@deepakpjose">
+                <button type="button" class="btn btn-primary">Tweet</button>
+            </a>
+
+          </div>
+          <br>
+
+          <hr class="my-4">
+          <div class="row">
+            <div class="col-md-2 col-4 mb-3">
+              <h4 class="text-center">More Trivias</h4>
+            </div>
+            {% for post in random_posts %}
+              <div class="col-md-2 col-4 mb-3">
+                <a href="{{ url_for('main.post', id=post.id, header=post.header) }}" class="text-decoration-none">
+                  <img src="{{ post.url }}" alt="{{ post.header }} thumbnail" class="img-fluid rounded mb-2" style="width: 200px; height: 100px; object-fit: cover;">
+                  <div class="text-center">{{ post.header }}</div>
+                </a>
+              </div>
+            {% endfor %}
+          </div>
+          <hr class="my-4">
+
+          <script src="https://giscus.app/client.js"
+            data-repo="deepakpjose/giscus_tactification"
+            data-repo-id="R_kgDOMAyhDw"
+            data-category="tactification post comments"
+            data-category-id="DIC_kwDOMAyhD84Cfnoe"
+            data-mapping="pathname"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="0"
+            data-input-position="top"
+            data-theme="preferred_color_scheme"
+            data-lang="en"
+            crossorigin="anonymous"
+            async>
+          </script>
+          <br>
+          <br>
+        </div><!-- /.blog-main -->
+      </div><!-- /.row -->
+
+    </main><!-- /.container -->
+{% endblock %}

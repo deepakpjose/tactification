@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+      <section class="jumbotron bg-white text-center">
+        <div class="container">
+            <h1 class="jumbotron-heading">www.tactification.com</h1>
+	        <blockquote class="blockquote"><em>Football timetravelling.</em></blockquote>
+        </div>
+      </section>
+
+
+    {% for post in posts %}
+        <div class="row justify-content-end">
+            <div class="col-2">
+                <a href="{{ url_for('main.post', id=post.id, header=post.header) }}">
+                    <h6 class="font-weight-normal text-dark text-left">{{ post.trivia_date_in_isoformat() }}</h6>
+                </a>
+            </div> 
+            <div class="col-10">
+                <a href="{{ url_for('main.post', id=post.id, header=post.header) }}">
+                    <h6 class="font-weight-normal text-dark text-left">{{ post.header }}</h6>
+                </a>
+            </div> 
+        </div>
+    {% endfor %}
+
+{% endblock %}
