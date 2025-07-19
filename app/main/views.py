@@ -32,6 +32,10 @@ def index():
 
     return render_template("index.html", posts=posts, pagination=pagination)
 
+@main.route("/aboutme", methods=["GET"])
+def aboutme():
+    return render_template("about.html")
+
 @main.route("/postindex", methods=["GET"])
 def postindex():
     app.logger.info('Hello tactification.com/post')
