@@ -1,3 +1,3 @@
 app="docker.tactification"
-docker build -t ${app} .
-docker run -d -p 80:80 -v /etc/nginx/conf.d/nginx.conf:/home/ubuntu/tactification/nginx.conf ${app}
+docker build --build-arg SECRET_KEY=$1 -t ${app} .
+docker run -d -p 80:80 -v insidecode:/var/www/app/docs ${app}

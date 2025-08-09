@@ -10,6 +10,7 @@ from urllib.parse import urlparse
 from timeit import default_timer as timer
 from concurrent import futures
 from flask import render_template, url_for, send_from_directory, request, make_response, session, redirect, jsonify, Markup
+from flask import send_from_directory
 from sqlalchemy.sql.expression import func
 from app import app
 from app.models import Post, PostType, Trivia
@@ -145,3 +146,9 @@ def sitemap():
 
     return response
 
+@app.route('/robots.txt')
+def robots():
+    return send_from_directory(
+        os.path.join(app.root_path, 'static'),
+        'robots.txt',
+        mimetype='text/plain')

@@ -4,8 +4,14 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
+    {% block meta %}
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    {% endblock %}
+
+    {% block title %}
     <title>Tactification</title>
+    {% endblock %}
+
     <link rel="icon" href="{{ url_for('static', filename='images/favicon.png') }}">
     {{ bootstrap.load_css() }}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/footer.css') }}">
