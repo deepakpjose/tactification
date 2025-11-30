@@ -3,7 +3,6 @@
 {% block meta %}
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="description" content="{{ post.header }}">
-<meta name="description" content="{{ post.tags }}">
 {% endblock %}
 
 {% block title %}
@@ -30,11 +29,33 @@
               <p>{{ markup }}</p>
           </div><!-- /.blog-post -->
 
+          {% set share_url = url_for('main.post', id=post.id, header=post.header, _external=True) %}
+          {% set share_text = post.header %}
+          {% set share_url_encoded = share_url|urlencode %}
+          {% set share_text_encoded = share_text|urlencode %}
           <div class="text-center">
-	          <a href="https://twitter.com/intent/tweet?text={{ post.header }}%20{{ url_for('.post', id=post.id, header=post.header, _external=True) }}%20by%20@deepakpjose">
-                <button type="button" class="btn btn-primary">Tweet</button>
-            </a>
-
+            <div class="btn-group flex-wrap" role="group" aria-label="Share this post">
+              <a class="btn btn-primary" target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?text={{ share_text_encoded }}%20{{ share_url_encoded }}%20by%20@deepakpjose">
+                <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" style="margin-right:6px; vertical-align:middle; color:#000;"><path fill="currentColor" d="M4 3h4.2l3.7 5.2L15.6 3H20l-6.1 7.8L20 19h-4.2l-4-5.6L7.9 19H4l6-8z"/></svg>
+                Share on X
+              </a>
+              <a class="btn btn-success" target="_blank" rel="noopener" href="https://api.whatsapp.com/send?text={{ share_text_encoded }}%20{{ share_url_encoded }}">
+                <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" style="margin-right:6px; vertical-align:middle;" fill="#25D366"><path d="M2 22l1.5-5A9 9 0 1112 21a9.4 9.4 0 01-4.3-1zM7.8 9.2c-.2-.5-.4-.5-.6-.5h-.5c-.2 0-.5.1-.7.3-.2.2-.8.7-.8 1.7s.9 2 1 2.1c.1.1 1.6 2.6 4.1 3.5 2 .7 2.4.6 2.8.5.4-.1 1.4-.6 1.6-1.1.2-.5.2-1 .1-1.1-.1-.1-.2-.2-.5-.3s-1.4-.7-1.6-.8c-.2-.1-.4-.1-.6.1-.2.2-.7.8-.8.9-.1.2-.3.2-.5.1-.2-.1-1-.4-1.9-1.3-.7-.6-1.2-1.4-1.3-1.6-.1-.2 0-.4.1-.5.1-.1.2-.2.3-.3.1-.1.2-.2.3-.3.1-.1.1-.2.2-.4 0-.2 0-.3 0-.4 0-.1-.5-1.2-.7-1.7z"/></svg>
+                WhatsApp
+              </a>
+              <a class="btn btn-info" target="_blank" rel="noopener" href="https://bsky.app/intent/compose?text={{ share_text_encoded }}%20{{ share_url_encoded }}">
+                <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" style="margin-right:6px; vertical-align:middle;" fill="#0285FF"><path d="M5 5c2 1.8 4.2 4.4 7 8 2.8-3.6 5-6.2 7-8 1.6-1.5 3 1.2.7 3.3-1.8 1.7-4.5 3.7-6.5 5 1.4 1 3.7 2.7 5 4.4 1.8 2.2-.7 3.4-2.6 2-1.8-1.3-3.1-2.7-3.6-3.4-.3-.5-.8-.7-1.3-.7s-1 .3-1.3.7c-.5.7-1.8 2.1-3.6 3.4-1.9 1.4-4.4.2-2.6-2C7.5 16 9.8 14.3 11.2 13c-2-1.3-4.7-3.3-6.5-5C2.5 6.2 3.9 3.5 5 5z"/></svg>
+                Bluesky
+              </a>
+              <a class="btn btn-warning" target="_blank" rel="noopener" href="https://www.reddit.com/submit?url={{ share_url_encoded }}&title={{ share_text_encoded }}">
+                <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" style="margin-right:6px; vertical-align:middle;" fill="#FF4500"><path d="M22 12.2c0-1-.8-1.8-1.8-1.8-.5 0-1 .2-1.3.6-1-.6-2.2-1-3.5-1.1l.7-3.3 2.3.5c0 1 .8 1.8 1.8 1.8 1 0 1.8-.8 1.8-1.8S22.7 5 21.7 5c-.6 0-1.2.3-1.5.8l-2.8-.6c-.2-.1-.5 0-.6.3l-.8 3.8c-1.4 0-2.7.4-3.8 1-1-.7-2.3-1-3.6-1-3.3 0-5.9 2-5.9 4.6 0 1.6 1 3 2.7 3.8 1.3.7 3.1 1.1 5 1.1s3.7-.4 5-1.1c1.7-.8 2.7-2.2 2.7-3.8 0-.2 0-.4-.1-.6.2-.2.6-.3 1-.3 1 0 1.8-.8 1.8-1.8zM6.7 13.2c0-.7.6-1.2 1.2-1.2.7 0 1.2.5 1.2 1.2 0 .6-.5 1.2-1.2 1.2-.6 0-1.2-.6-1.2-1.2zm7.1 3.1c-.8.5-1.9.8-3.1.8-1.2 0-2.3-.3-3.1-.8-.2-.1-.2-.3-.1-.4.1-.2.3-.2.5-.1.7.4 1.7.7 2.8.7 1.1 0 2.1-.2 2.8-.7.2-.1.4-.1.5.1.1.1.1.3-.1.4zm.6-1.9c-.6 0-1.2-.6-1.2-1.2 0-.7.6-1.2 1.2-1.2.7 0 1.2.5 1.2 1.2 0 .6-.5 1.2-1.2 1.2z"/></svg>
+                Reddit
+              </a>
+              <a class="btn btn-secondary" target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u={{ share_url_encoded }}">
+                <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" style="margin-right:6px; vertical-align:middle;" fill="#1877F2"><path d="M13 10h2.5l.5-3H13V5.5c0-.9.3-1.5 1.6-1.5H16V1.2C15.4 1.1 14.3 1 13 1c-2.9 0-4.8 1.7-4.8 4.7V7H6v3h2.2v9h4V10z"/></svg>
+                Facebook
+              </a>
+            </div>
           </div>
           <br>
 
