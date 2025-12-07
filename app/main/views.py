@@ -25,7 +25,7 @@ def index():
     page = request.args.get('page', 1, type=int)
     pagination = Post.query.order_by(Post.timestamp.desc()) \
         .filter_by(post_type=PostType.POSTER) \
-        .paginate(page=page, per_page=20, error_out=False)
+        .paginate(page=page, per_page=10, error_out=False)
     posts = pagination.items
 
     if not posts:
@@ -74,7 +74,7 @@ def post(id, header):
     if page is None:
         return render_template("error.html", "Post {:s} not present".format(id))
 
-    random_posts = Post.query.order_by(func.random()).limit(5).all()
+    random_posts = Post.query.order_by(func.random()).limit(3).all()
 
     #Making body markup safe using Markup class from flask.
     markup = Markup(page.body)

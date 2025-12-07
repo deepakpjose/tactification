@@ -1,0 +1,80 @@
+.hero-pitch {
+  background: linear-gradient(135deg, #0b1e3b 0%, #0a8c4a 60%, #0f9d58 100%);
+  color: #f7f9fb;
+  border-radius: 16px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  position: relative;
+}
+
+.hero-overlay {
+  background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.08), transparent 40%),
+              radial-gradient(circle at 80% 10%, rgba(255, 255, 255, 0.12), transparent 35%),
+              radial-gradient(circle at 50% 80%, rgba(255, 255, 255, 0.1), transparent 40%);
+  padding: 3rem 2.5rem;
+  position: relative;
+}
+
+.hero-link {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.hero-overlay > * {
+  position: relative;
+  z-index: 2;
+}
+
+.match-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.match-chip svg {
+  flex-shrink: 0;
+}
+
+.cta-row .btn {
+  border-radius: 999px;
+  font-weight: 700;
+  padding-left: 1.4rem;
+  padding-right: 1.4rem;
+}
+
+.card-sporty {
+  border: none;
+  border-radius: 14px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  height: 100%;
+}
+
+.card-sporty img {
+  height: 170px;
+  object-fit: cover;
+}
+
+.card-sporty .card-body {
+  background: #0b1224;
+  color: #eef2f5;
+}
+
+.card-sporty .badge {
+  letter-spacing: 0.05em;
+}
+
+.divider-title {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 800;
+  color: #0b1e3b;
+}
