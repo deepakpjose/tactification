@@ -31,7 +31,14 @@ def index():
     if not posts:
         return render_template("error.html", "Posters not present")
 
-    return render_template("index.html", posts=posts, pagination=pagination)
+    trivias = (
+        Trivia.query.order_by(Trivia.date.desc())
+        .filter_by(post_type=PostType.TRIVIA)
+        .limit(6)
+        .all()
+    )
+
+    return render_template("index.html", posts=posts, pagination=pagination, trivias=trivias)
 
 @main.route("/aboutme", methods=["GET"])
 def aboutme():

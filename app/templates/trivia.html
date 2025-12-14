@@ -3,6 +3,7 @@
 {% block meta %}
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="description" content="{{ post.header }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
 {% endblock %}
 
 {% block title %}
@@ -11,18 +12,44 @@
 
 {% block content %}
     <main role="main">
+
+      {% set share_url = url_for('main.trivia', id=post.id, header=post.header, _external=True) %}
+      {% set share_text = post.header %}
+      {% set share_url_encoded = share_url|urlencode %}
+      {% set share_text_encoded = share_text|urlencode %}
+
+      <section class="hero-pitch mt-3 mb-4">
+        <div class="hero-overlay">
+          <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+            <div class="text-uppercase small fw-bold">Football timetravelling</div>
+          </div>
+
+          <div class="row align-items-center g-4">
+            <div class="col-md-7 position-relative">
+              <a class="stretched-link hero-link" href="{{ share_url }}"></a>
+              <h1 class="display-5 fw-bold mb-3">{{ post.header }}</h1>
+              <div class="d-flex align-items-center text-light small">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="me-2"><path d="M12 3v18m9-9H3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                {{ post.trivia_date_in_isoformat() }}
+              </div>
+            </div>
+            <div class="col-md-5">
+              {% if post.url %}
+              <a class="card border-0 overflow-hidden d-block" style="border-radius:16px; box-shadow:0 12px 30px rgba(0,0,0,0.25);" href="{{ share_url }}">
+                <img id="postImg" src="{{ post.url }}" class="w-100" style="object-fit:cover; height:260px;" alt="Responsive image">
+              </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </section>
+
       <div class="row">
         <div class="col-md-12 blog-main">
           <div class="blog-post">
-              <h2 class="blog-post-title">{{ post.header }}</h2>
-              <button type="button" class="btn btn-light">{{ post.trivia_date_in_isoformat() }}</button>
               <p>{{ markup }}</p>
           </div><!-- /.blog-post -->
 
-          {% set share_url = url_for('main.trivia', id=post.id, header=post.header, _external=True) %}
-          {% set share_text = post.header %}
-          {% set share_url_encoded = share_url|urlencode %}
-          {% set share_text_encoded = share_text|urlencode %}
           <div class="text-center">
             <div class="btn-group flex-wrap" role="group" aria-label="Share this trivia">
               <a class="btn btn-primary" target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?text={{ share_text_encoded }}%20{{ share_url_encoded }}%20by%20@deepakpjose">
@@ -48,23 +75,31 @@
             </div>
           </div>
           <br>
-
-<!--          <hr class="my-4">
-          <div class="row">
-            <div class="col-md-2 col-4 mb-3">
-              <h4 class="text-center">More Trivias</h4>
-            </div>
+          <hr class="my-4">
+          <div class="d-flex align-items-center mb-3">
+            <h4 class="text-white mb-0">More Trivias</h4>
+            <div class="flex-grow-1 ms-3" style="height:2px; background: linear-gradient(90deg, #0a8c4a, rgba(10,140,74,0));"></div>
+          </div>
+          <div class="row g-3">
             {% for post in random_posts %}
-              <div class="col-md-2 col-4 mb-3">
-                <a href="{{ url_for('main.trivia', id=post.id, header=post.header) }}" class="text-decoration-none">
-                  <img src="{{ post.url }}" alt="{{ post.header }} thumbnail" class="img-fluid rounded mb-2" style="width: 200px; height: 100px; object-fit: cover;">
-                  <div class="text-center">{{ post.header }}</div>
-                </a>
-              </div>
+            <div class="col-md-4 col-6">
+              <a href="{{ url_for('main.trivia', id=post.id, header=post.header) }}" class="card card-sporty text-decoration-none d-block">
+                {% if post.url %}
+                <img src="{{ post.url }}" alt="{{ post.header }} thumbnail" class="card-img-top">
+                {% endif %}
+                <div class="card-body py-3">
+                  <div class="d-flex justify-content-between align-items-center mb-2 text-white-50">
+                    <span class="badge bg-success">{{ post.trivia_date_in_isoformat() }}</span>
+                    <span class="small">Read</span>
+                  </div>
+                  <h6 class="card-title text-white mb-0">{{ post.header }}</h6>
+                </div>
+              </a>
+            </div>
             {% endfor %}
           </div>
           <hr class="my-4">
--->
+
           <script src="https://giscus.app/client.js"
             data-repo="deepakpjose/giscus_tactification"
             data-repo-id="R_kgDOMAyhDw"

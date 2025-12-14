@@ -83,6 +83,30 @@
   {% endfor %}
 </div>
 
+{% if trivias %}
+<div class="d-flex align-items-center mb-3">
+  <span class="divider-title">Latest trivia drops</span>
+  <div class="flex-grow-1 ms-3" style="height:2px; background: linear-gradient(90deg, #0a8c4a, rgba(10,140,74,0));"></div>
+</div>
+
+<div class="row g-3 g-md-4 mb-4">
+  {% for trivia in trivias %}
+  <div class="col-md-4 col-6">
+    <a class="card card-sporty text-decoration-none d-block h-100" href="{{ url_for('main.trivia', id=trivia.id, header=trivia.header) }}">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2 text-white-50">
+          <span class="badge bg-primary">{{ trivia.trivia_date_in_isoformat() }}</span>
+          <span class="small">Trivia</span>
+        </div>
+        <h6 class="card-title text-white mb-2">{{ trivia.header }}</h6>
+        <p class="card-text text-white-50 small mb-0">{{ trivia.body|striptags|truncate(110, True) }}</p>
+      </div>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
 <!-- Pagination controls -->
 <div class="d-flex justify-content-center align-items-center my-4">
   {% if pagination.has_prev %}
