@@ -233,11 +233,13 @@ def writetrivias():
         body = triviaform.body.data
         tags = triviaform.tags.data
         date = triviaform.date.data
+        url = triviaform.url.data
 
         try:
             # Create the object trivia of class Post with PostType.TRIVIA.
             trivia = Trivia(body=body, header=header,
-                            tags=tags, date=date, post_type=PostType.TRIVIA)
+                            tags=tags, date=date, #url=url,
+                            post_type=PostType.TRIVIA)
         except Exception as e:
             logging.error(f"Error occurred while creating trivia: {e}")
             traceback.print_exc()
@@ -269,12 +271,14 @@ def edittrivias(id):
         body = triviaform.body.data
         tags = triviaform.tags.data
         date = triviaform.date.data
+        url = triviaform.url.data
 
         try:
             trivia.body = body
             trivia.header = header
             trivia.tags = tags
             trivia.date = date
+            #trivia.url = url
         except:
             msg = "Trivia editing failed: {:s}".format(sys.exc_info()[0])
             return render_template("error.html", msg=msg)

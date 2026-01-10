@@ -292,6 +292,7 @@ class Trivia(db.Model):
     author_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     tags = db.Column(db.String(64))
     post_type = db.Column(db.Integer)
+    url = db.Column(db.String(256))
 
     def month_of_date(self, month):
         return _MONTHNAMES[month]
@@ -315,7 +316,7 @@ class Trivia(db.Model):
         To display the contents of a trivia.
         """
         trivia_info = 'Id: {id} header: {header}'
-        logging.info(trivia_info.format(id=self.id, header=self.header, url=self.url))
+        logging.info(trivia_info.format(id=self.id, header=self.header))
         return
 
 @login_manager.user_loader

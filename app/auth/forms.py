@@ -53,6 +53,10 @@ class TriviaCreateForm(FlaskForm):
     )
     tags = StringField("Tags", [validators.Length(min=1, max=255)])
     date = DateField("Date", format='%Y-%m-%d', validators=[DataRequired()])
+    url = StringField(
+        "GitHub URL",
+        [validators.Optional(), validators.Length(max=256), validators.URL()]
+    )
     submit = SubmitField("Submit")
 
 class TriviaEditForm(FlaskForm):
@@ -62,6 +66,10 @@ class TriviaEditForm(FlaskForm):
     )
     tags = StringField("Tags", [validators.Length(min=1, max=255)])
     date = DateField("Date", format='%Y-%m-%d', validators=[DataRequired()])
+    url = StringField(
+        "GitHub URL",
+        [validators.Optional(), validators.Length(max=256), validators.URL()]
+    )
     submit = SubmitField("Submit")
 
     def show(self):

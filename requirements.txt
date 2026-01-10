@@ -4,7 +4,6 @@ Bootstrap-Flask==1.5.2
 Flask-WTF
 Flask-SQLAlchemy
 Flask-Login
-Flask-PyMongo
 wtforms[email]
 itsdangerous==2.0.1
 Werkzeug==2.2.2
