@@ -1,7 +1,7 @@
 
 from __future__ import print_function
 import os.path
-import random
+from random import sample
 import requests
 import threading
 import logging
@@ -11,8 +11,7 @@ from timeit import default_timer as timer
 from concurrent import futures
 from flask import render_template, url_for, send_from_directory, request, make_response, session, redirect, jsonify, Markup
 from flask import send_from_directory
-from sqlalchemy.sql.expression import func
-from app import app
+from app import app, db
 from app.models import Post, PostType, Trivia
 from . import main
 
@@ -81,7 +80,9 @@ def post(id, header):
     if page is None:
         return render_template("error.html", "Post {:s} not present".format(id))
 
-    random_posts = Post.query.order_by(func.random()).limit(3).all()
+    all_post_ids = [r[0] for r in db.session.query(Post.id).filter_by(post_type=PostType.POSTER).all()]
+    random_ids = sample(all_post_ids, min(3, len(all_post_ids)))
+    random_posts = Post.query.filter(Post.id.in_(random_ids)).all()
 
     #Making body markup safe using Markup class from flask.
     markup = Markup(page.body)
@@ -98,7 +99,9 @@ def trivia(id, header):
 
     # Making body markup safe using Markup class from flask.
     markup = Markup(trivia_item.body)
-    random_posts = Trivia.query.order_by(func.random()).limit(5).all()
+    all_trivia_ids = [r[0] for r in db.session.query(Trivia.id).filter_by(post_type=PostType.TRIVIA).all()]
+    random_ids = sample(all_trivia_ids, min(5, len(all_trivia_ids)))
+    random_posts = Trivia.query.filter(Trivia.id.in_(random_ids)).all()
 
     return render_template("trivia.html", post=trivia_item,
                            markup=markup, random_posts=random_posts)

@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block title %}
-<title>Tactification</title>
+<title>{{ post.header }} | Tactification</title>
 {% endblock %}
 
 {% block content %}
@@ -36,7 +36,7 @@
             <div class="col-md-5">
               {% if post.url %}
               <a class="card border-0 overflow-hidden d-block" style="border-radius:16px; box-shadow:0 12px 30px rgba(0,0,0,0.25);" href="{{ share_url }}">
-                <img id="postImg" src="{{ post.url }}" class="w-100" style="object-fit:cover; height:260px;" alt="Responsive image">
+                <img id="postImg" src="{{ post.url }}" class="w-100" style="object-fit:cover; height:260px;" alt="{{ post.header }}" width="600" height="260" fetchpriority="high">
               </a>
               {% endif %}
             </div>
@@ -85,7 +85,7 @@
             <div class="col-md-4 col-6">
               <a href="{{ url_for('main.trivia', id=post.id, header=post.header) }}" class="card card-sporty text-decoration-none d-block">
                 {% if post.url %}
-                <img src="{{ post.url }}" alt="{{ post.header }} thumbnail" class="card-img-top">
+                <img src="{{ post.url }}" alt="{{ post.header }} thumbnail" class="card-img-top" loading="lazy" decoding="async" width="400" height="170">
                 {% endif %}
                 <div class="card-body py-3">
                   <div class="d-flex justify-content-between align-items-center mb-2 text-white-50">
@@ -100,20 +100,34 @@
           </div>
           <hr class="my-4">
 
-          <script src="https://giscus.app/client.js"
-            data-repo="deepakpjose/giscus_tactification"
-            data-repo-id="R_kgDOMAyhDw"
-            data-category="tactification post comments"
-            data-category-id="DIC_kwDOMAyhD84Cfnoe"
-            data-mapping="pathname"
-            data-strict="0"
-            data-reactions-enabled="1"
-            data-emit-metadata="0"
-            data-input-position="top"
-            data-theme="preferred_color_scheme"
-            data-lang="en"
-            crossorigin="anonymous"
-            async>
+          <div id="giscus-container"></div>
+          <script>
+          (function() {
+            var observer = new IntersectionObserver(function(entries) {
+              entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                  var s = document.createElement('script');
+                  s.src = 'https://giscus.app/client.js';
+                  s.setAttribute('data-repo', 'deepakpjose/giscus_tactification');
+                  s.setAttribute('data-repo-id', 'R_kgDOMAyhDw');
+                  s.setAttribute('data-category', 'tactification post comments');
+                  s.setAttribute('data-category-id', 'DIC_kwDOMAyhD84Cfnoe');
+                  s.setAttribute('data-mapping', 'pathname');
+                  s.setAttribute('data-strict', '0');
+                  s.setAttribute('data-reactions-enabled', '1');
+                  s.setAttribute('data-emit-metadata', '0');
+                  s.setAttribute('data-input-position', 'top');
+                  s.setAttribute('data-theme', 'preferred_color_scheme');
+                  s.setAttribute('data-lang', 'en');
+                  s.crossOrigin = 'anonymous';
+                  s.async = true;
+                  entry.target.appendChild(s);
+                  observer.disconnect();
+                }
+              });
+            }, { rootMargin: '200px' });
+            observer.observe(document.getElementById('giscus-container'));
+          })();
           </script>
           <br>
           <br>

@@ -37,6 +37,12 @@ login_manager.session_protection = "strong"
 login_manager.login_view = "auth.login"
 
 
+@app.context_processor
+def inject_current_year():
+    from datetime import datetime
+    return {'current_year': datetime.now().year}
+
+
 def create_app():
 
     from .main import main as main_blueprint

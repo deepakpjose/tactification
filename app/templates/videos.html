@@ -9,7 +9,7 @@
 				  <hr>
 					  <!--div-->
 					  <div class="text-center">
-              <iframe width="560" height="315" src="https://www.youtube.com/embed/Oaxnk-Si61Y?si=rfLdgSx7Y9rR_Ywh" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+              <iframe width="560" height="315" loading="lazy" src="https://www.youtube.com/embed/Oaxnk-Si61Y?si=rfLdgSx7Y9rR_Ywh" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
               <figcaption class="figure-caption">Maradona's Wonder Goal against England</figcaption>
 					  </div>
 					  <!--div-->
@@ -18,20 +18,34 @@
           </div><!-- /.blog-post -->
 
           <br>
-          <script src="https://giscus.app/client.js"
-            data-repo="deepakpjose/giscus_tactification"
-            data-repo-id="R_kgDOMAyhDw"
-            data-category="tactification post comments"
-            data-category-id="DIC_kwDOMAyhD84Cfnoe"
-            data-mapping="pathname"
-            data-strict="0"
-            data-reactions-enabled="1"
-            data-emit-metadata="0"
-            data-input-position="top"
-            data-theme="preferred_color_scheme"
-            data-lang="en"
-            crossorigin="anonymous"
-            async>
+          <div id="giscus-container"></div>
+          <script>
+          (function() {
+            var observer = new IntersectionObserver(function(entries) {
+              entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                  var s = document.createElement('script');
+                  s.src = 'https://giscus.app/client.js';
+                  s.setAttribute('data-repo', 'deepakpjose/giscus_tactification');
+                  s.setAttribute('data-repo-id', 'R_kgDOMAyhDw');
+                  s.setAttribute('data-category', 'tactification post comments');
+                  s.setAttribute('data-category-id', 'DIC_kwDOMAyhD84Cfnoe');
+                  s.setAttribute('data-mapping', 'pathname');
+                  s.setAttribute('data-strict', '0');
+                  s.setAttribute('data-reactions-enabled', '1');
+                  s.setAttribute('data-emit-metadata', '0');
+                  s.setAttribute('data-input-position', 'top');
+                  s.setAttribute('data-theme', 'preferred_color_scheme');
+                  s.setAttribute('data-lang', 'en');
+                  s.crossOrigin = 'anonymous';
+                  s.async = true;
+                  entry.target.appendChild(s);
+                  observer.disconnect();
+                }
+              });
+            }, { rootMargin: '200px' });
+            observer.observe(document.getElementById('giscus-container'));
+          })();
           </script>
           <br>
           <br>
