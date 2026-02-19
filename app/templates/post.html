@@ -3,7 +3,11 @@
 {% block meta %}
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="description" content="{{ post.header }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+<link rel="preload" href="{{ url_for('static', filename='css/index.css') }}" as="style">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}" media="print" onload="this.media='all'">
+<noscript>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+</noscript>
 {% endblock %}
 
 {% block title %}
