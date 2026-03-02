@@ -253,6 +253,7 @@ class Post(db.Model):
     url = db.Column(db.String(64))
 
     post_type = db.Column(db.Integer)
+    visit_count = db.Column(db.Integer, server_default='0', nullable=False)
 
     def month_of_date(self, month):
         return _MONTHNAMES[month]
@@ -293,6 +294,7 @@ class Trivia(db.Model):
     tags = db.Column(db.String(64))
     post_type = db.Column(db.Integer)
     url = db.Column(db.String(256))
+    visit_count = db.Column(db.Integer, server_default='0', nullable=False)
 
     def month_of_date(self, month):
         return _MONTHNAMES[month]
@@ -323,3 +325,13 @@ class Trivia(db.Model):
 def load_user(user_id):
     """ """
     return User.query.get(int(user_id))
+
+
+class PageVisit(db.Model):
+    """
+    Tracks visit counts for static pages (index, aboutme, videos, etc.).
+    """
+
+    __tablename__ = "page_visits"
+    page = db.Column(db.String(64), primary_key=True)
+    count = db.Column(db.Integer, server_default='0', nullable=False)

@@ -12,15 +12,27 @@ from concurrent import futures
 from flask import render_template, url_for, send_from_directory, request, make_response, session, redirect, jsonify, Markup
 from flask import send_from_directory
 from app import app, db
-from app.models import Post, PostType, Trivia
+from app.models import Post, PostType, Trivia, PageVisit
 from . import main
 
 mail_req_q = Queue()
 mailbox_mails = list()
 
+
+def _record_static_visit(page):
+    visit = PageVisit.query.get(page)
+    if visit is None:
+        visit = PageVisit(page=page, count=1)
+        db.session.add(visit)
+    else:
+        visit.count += 1
+    db.session.commit()
+    return visit.count
+
 @main.route("/", methods=["GET", "POST"])
 def index():
     app.logger.info('Hello tactification.com')
+    visit_count = _record_static_visit("index")
     page = request.args.get('page', 1, type=int)
     pagination = Post.query.order_by(Post.timestamp.desc()) \
         .filter_by(post_type=PostType.POSTER) \
@@ -37,39 +49,42 @@ def index():
         .all()
     )
 
-    return render_template("index.html", posts=posts, pagination=pagination, trivias=trivias)
+    return render_template("index.html", posts=posts, pagination=pagination, trivias=trivias, visit_count=visit_count)
 
 @main.route("/aboutme", methods=["GET"])
 def aboutme():
-    return render_template("about.html")
+    visit_count = _record_static_visit("aboutme")
+    return render_template("about.html", visit_count=visit_count)
 
 @main.route("/postindex", methods=["GET"])
 def postindex():
     app.logger.info('Hello tactification.com/post')
+    visit_count = _record_static_visit("postindex")
     posts = (
         Post.query.order_by(Post.timestamp.desc())
         .filter_by(post_type=PostType.POSTER)
         .all()
     )
 
-    return render_template("postarchive.html", posts=posts)
+    return render_template("postarchive.html", posts=posts, visit_count=visit_count)
 
 @main.route("/triviasindex", methods=["GET"])
 def triviasindex():
     app.logger.info('Hello tactification.com/trivias')
+    visit_count = _record_static_visit("triviasindex")
     trivias = (
         Trivia.query.order_by(Trivia.date.desc())
         .filter_by(post_type=PostType.TRIVIA)
         .all()
     )
 
-    return render_template("triviaarchive.html", posts = trivias)
+    return render_template("triviaarchive.html", posts=trivias, visit_count=visit_count)
 
 @main.route("/videos", methods=["GET"])
 def videos():
     app.logger.info('Hello tactification.com/articles')
-
-    return render_template("videos.html")
+    visit_count = _record_static_visit("videos")
+    return render_template("videos.html", visit_count=visit_count)
 
 @main.route("/post/<int:id>/<string:header>", methods=["GET", "POST"])
 def post(id, header):
@@ -83,6 +98,9 @@ def post(id, header):
     all_post_ids = [r[0] for r in db.session.query(Post.id).filter_by(post_type=PostType.POSTER).all()]
     random_ids = sample(all_post_ids, min(3, len(all_post_ids)))
     random_posts = Post.query.filter(Post.id.in_(random_ids)).all()
+
+    page.visit_count += 1
+    db.session.commit()
 
     #Making body markup safe using Markup class from flask.
     markup = Markup(page.body)
@@ -102,6 +120,9 @@ def trivia(id, header):
     all_trivia_ids = [r[0] for r in db.session.query(Trivia.id).filter_by(post_type=PostType.TRIVIA).all()]
     random_ids = sample(all_trivia_ids, min(5, len(all_trivia_ids)))
     random_posts = Trivia.query.filter(Trivia.id.in_(random_ids)).all()
+
+    trivia_item.visit_count += 1
+    db.session.commit()
 
     return render_template("trivia.html", post=trivia_item,
                            markup=markup, random_posts=random_posts)

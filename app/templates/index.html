@@ -39,8 +39,8 @@
       </div>
       <div class="col-md-5">
         {% if featured and featured.url %}
-        <a class="card border-0 overflow-hidden d-block" style="border-radius:16px; box-shadow:0 12px 30px rgba(0,0,0,0.25);" href="{{ url_for('main.post', id=featured.id, header=featured.header) }}">
-          <img src="{{ featured.url }}" alt="{{ featured.header }}" class="w-100" style="object-fit:cover; height:260px;" width="600" height="260" fetchpriority="high">
+        <a class="card border-0 d-block" style="border-radius:16px; box-shadow:0 12px 30px rgba(0,0,0,0.25);" href="{{ url_for('main.post', id=featured.id, header=featured.header) }}">
+          <img src="{{ featured.url }}" alt="{{ featured.header }}" class="w-100" style="height:auto; display:block; border-radius:16px;" width="600" fetchpriority="high">
         </a>
         {% else %}
         <div class="card border-0 bg-white text-dark p-3" style="border-radius:14px;">
@@ -69,7 +69,7 @@
   <div class="col-md-4">
     <a class="card card-sporty text-decoration-none d-block" href="{{ url_for('main.post', id=post.id, header=post.header) }}">
       {% if post.url %}
-      <img src="{{ post.url }}" class="card-img-top" alt="{{ post.header }} thumbnail" loading="lazy" decoding="async" width="400" height="170">
+      <img src="{{ post.url }}" class="card-img-top" alt="{{ post.header }} thumbnail" loading="lazy" decoding="async" width="400">
       {% endif %}
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-2 text-white-50">
@@ -106,6 +106,8 @@
   {% endfor %}
 </div>
 {% endif %}
+
+<p class="text-muted small text-center">{{ visit_count }} visits</p>
 
 <!-- Pagination controls -->
 <div class="d-flex justify-content-center align-items-center my-4">

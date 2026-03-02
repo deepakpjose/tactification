@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}
+<title>Dashboard | Tactification</title>
+{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Visit Dashboard</h2>
+
+<div class="d-flex align-items-center mb-3">
+  <span class="divider-title">Static Pages</span>
+  <div class="flex-grow-1 ms-3" style="height:2px; background: linear-gradient(90deg, #0a8c4a, rgba(10,140,74,0));"></div>
+</div>
+<table class="table table-striped table-sm mb-5">
+  <thead>
+    <tr>
+      <th>Page</th>
+      <th class="text-end">Visits</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for v in static_visits %}
+    <tr>
+      <td>{{ v.page }}</td>
+      <td class="text-end">{{ v.count }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="2" class="text-muted">No data yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div class="d-flex align-items-center mb-3">
+  <span class="divider-title">Posts</span>
+  <div class="flex-grow-1 ms-3" style="height:2px; background: linear-gradient(90deg, #0a8c4a, rgba(10,140,74,0));"></div>
+</div>
+<table class="table table-striped table-sm mb-5">
+  <thead>
+    <tr>
+      <th>Title</th>
+      <th>Date</th>
+      <th class="text-end">Views</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for post in posts %}
+    <tr>
+      <td><a href="{{ url_for('main.post', id=post.id, header=post.header) }}">{{ post.header }}</a></td>
+      <td>{{ post.post_date_in_isoformat() }}</td>
+      <td class="text-end">{{ post.visit_count }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="3" class="text-muted">No posts yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div class="d-flex align-items-center mb-3">
+  <span class="divider-title">Trivias</span>
+  <div class="flex-grow-1 ms-3" style="height:2px; background: linear-gradient(90deg, #0a8c4a, rgba(10,140,74,0));"></div>
+</div>
+<table class="table table-striped table-sm mb-5">
+  <thead>
+    <tr>
+      <th>Title</th>
+      <th>Date</th>
+      <th class="text-end">Views</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for trivia in trivias %}
+    <tr>
+      <td><a href="{{ url_for('main.trivia', id=trivia.id, header=trivia.header) }}">{{ trivia.header }}</a></td>
+      <td>{{ trivia.trivia_date_in_isoformat() }}</td>
+      <td class="text-end">{{ trivia.visit_count }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="3" class="text-muted">No trivias yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -5,6 +5,7 @@
         <div class="container">
             <h1 class="jumbotron-heading">www.tactification.com</h1>
 	        <blockquote class="blockquote"><em>Football timetravelling.</em></blockquote>
+            <p class="text-muted small">{{ visit_count }} visits</p>
         </div>
       </section>
 
@@ -16,11 +17,14 @@
                     <h6 class="font-weight-normal text-dark text-left">{{ post.post_date_in_isoformat() }}</h6>
                 </a>
             </div> 
-            <div class="col-10">
+            <div class="col-8">
                 <a href="{{ url_for('main.post', id=post.id, header=post.header) }}">
                     <h6 class="font-weight-normal text-dark text-left">{{ post.header }}</h6>
                 </a>
-            </div> 
+            </div>
+            <div class="col-2 text-muted small text-right">
+                {{ post.visit_count }} views
+            </div>
         </div>
     {% endfor %}
 

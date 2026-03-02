@@ -126,6 +126,11 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('main.triviasindex')}}">Trivias</a>
                     </li>
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.dashboard') }}">Dashboard</a>
+                    </li>
+                    {% endif %}
                 </ul>
             </div>
         </nav>

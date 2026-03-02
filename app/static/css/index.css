@@ -59,8 +59,9 @@
 }
 
 .card-sporty img {
-  height: 170px;
-  object-fit: cover;
+  height: auto;
+  display: block;
+  width: 100%;
 }
 
 .card-sporty .card-body {

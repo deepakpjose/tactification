@@ -18,11 +18,20 @@ from flask import (
 from flask_login import current_user, login_required, login_user, logout_user
 from app import db, app
 from app.auth import auth
-from app.models import User, Permission, Role, Post, PostType, Trivia
+from app.models import User, Permission, Role, Post, PostType, Trivia, PageVisit
 from werkzeug.utils import secure_filename
 from app.auth.forms import LoginForm, PosterCreateForm, PosterEditForm, TriviaCreateForm, TriviaEditForm
 from app.auth.decorators import permission_required
 from app.auth.utils import allowed_file
+
+
+@auth.route("/dashboard", methods=["GET"])
+@login_required
+def dashboard():
+    static_visits = PageVisit.query.order_by(PageVisit.count.desc()).all()
+    posts = Post.query.filter_by(post_type=PostType.POSTER).order_by(Post.visit_count.desc()).all()
+    trivias = Trivia.query.filter_by(post_type=PostType.TRIVIA).order_by(Trivia.visit_count.desc()).all()
+    return render_template("dashboard.html", static_visits=static_visits, posts=posts, trivias=trivias)
 
 
 @auth.route("/login", methods=["POST", "GET"])
