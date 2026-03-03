@@ -17,6 +17,7 @@ from flask import (
 )
 from flask_login import current_user, login_required, login_user, logout_user
 from app import db, app
+from app import tags as tag_cache
 from app.auth import auth
 from app.models import User, Permission, Role, Post, PostType, Trivia, PageVisit
 from werkzeug.utils import secure_filename
@@ -143,6 +144,7 @@ def writeposters():
 
             db.session.add(post)
             db.session.commit()
+            tag_cache.add_item(post, 'post')
 
             flash("Created post")
             return redirect(request.args.get("next") or url_for("main.index"))
@@ -188,6 +190,7 @@ def editposters(id):
                 return redirect(url_for("auth.writeposters"))
 
         #Update the post field in the db.
+        old_tags = post.tags
         try:
             post.body = body
             post.header = header
@@ -203,6 +206,7 @@ def editposters(id):
 
         db.session.add(post)
         db.session.commit()
+        tag_cache.update_item(post, old_tags, 'post')
         flash("Edited post")
         return redirect(
             request.args.get("next")
@@ -224,6 +228,7 @@ def deleteposters(id):
         msg = "Poster deletion failed"
         return render_template("error.html", msg=msg)
 
+    tag_cache.remove_item(post, 'post')
     poster_delete(post)
     db.session.delete(post)
     db.session.commit()
@@ -256,6 +261,7 @@ def writetrivias():
 
         db.session.add(trivia)
         db.session.commit()
+        tag_cache.add_item(trivia, 'trivia')
 
         flash("Created trivia")
         return redirect(request.args.get("next") or url_for("main.index"))
@@ -282,6 +288,7 @@ def edittrivias(id):
         date = triviaform.date.data
         url = triviaform.url.data
 
+        old_tags = trivia.tags
         try:
             trivia.body = body
             trivia.header = header
@@ -294,6 +301,7 @@ def edittrivias(id):
         
         db.session.add(trivia)
         db.session.commit()
+        tag_cache.update_item(trivia, old_tags, 'trivia')
         flash(f"Edited trivia with ID: {trivia.id}")
         return redirect(
             request.args.get("next")
@@ -314,6 +322,7 @@ def deletetrivias(id):
         msg = "Trivia deletion failed"
         return render_template("error.html", msg=msg)
 
+    tag_cache.remove_item(trivia, 'trivia')
     db.session.delete(trivia)
     db.session.commit()
 

@@ -11,7 +11,7 @@ from timeit import default_timer as timer
 from concurrent import futures
 from flask import render_template, url_for, send_from_directory, request, make_response, session, redirect, jsonify, Markup
 from flask import send_from_directory
-from app import app, db
+from app import app, db, tags as tag_cache
 from app.models import Post, PostType, Trivia, PageVisit
 from . import main
 
@@ -176,6 +176,20 @@ def sitemap():
     response.headers["Content-Type"] = "application/xml"
 
     return response
+
+@main.route("/tag/<string:tag>")
+def tag(tag):
+    tag = tag.lower()
+    posts = tag_cache.get_posts_for_tag(tag)
+    trivias = tag_cache.get_trivias_for_tag(tag)
+    return render_template("tagpage.html", tag=tag, posts=posts, trivias=trivias)
+
+
+@main.route("/tags/more")
+def tags_more():
+    remaining = [{'tag': t, 'count': c} for t, c in tag_cache.get_all_tags()[20:]]
+    return jsonify(remaining)
+
 
 @app.route('/robots.txt')
 def robots():

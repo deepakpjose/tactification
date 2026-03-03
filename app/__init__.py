@@ -43,6 +43,15 @@ def inject_current_year():
     return {'current_year': datetime.now().year}
 
 
+@app.context_processor
+def inject_nav_tags():
+    try:
+        from app import tags
+        return {'nav_tags': tags.get_all_tags()}
+    except Exception:
+        return {'nav_tags': []}
+
+
 def create_app():
 
     from .main import main as main_blueprint
@@ -54,6 +63,10 @@ def create_app():
 
     if "auth" not in app.blueprints:
         app.register_blueprint(auth_blueprint, url_prefix="/auth")
+
+    from app import tags
+    with app.app_context():
+        tags.rebuild()
 
     return app
 

@@ -89,6 +89,40 @@
       left: 0;
       right: 0;
     }
+    .topics-sidebar {
+      position: sticky;
+      top: 1rem;
+      padding-right: 0.75rem;
+      border-right: 1px solid #e0e6ed;
+    }
+    .topics-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #aaa;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+    .topic-pill {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #0b1e3b;
+      text-decoration: none;
+      padding: 0.25rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      transition: background 0.15s, color 0.15s;
+    }
+    .topic-pill:hover {
+      background: #0a8c4a;
+      color: #fff;
+    }
+    .topic-count {
+      font-size: 0.65rem;
+      opacity: 0.5;
+    }
     </style>
 
     <!-- Google tag (gtag.js) - deferred page view -->
@@ -137,7 +171,32 @@
     </div> 
     <div class="container">
         {{ render_messages(container=False, dismissible=True) }}
-        {% block content %}{% endblock %}
+        <div class="row">
+            {% if nav_tags %}
+            <div class="col-md-2 d-none d-md-block">
+                <div class="topics-sidebar">
+                    <span class="topics-label">Topics</span>
+                    <div id="tags-container">
+                        {% for tag, count in nav_tags[:20] %}
+                        <a href="{{ url_for('main.tag', tag=tag) }}" class="topic-pill">
+                            {{ tag }}<span class="topic-count">{{ count }}</span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% if nav_tags|length > 20 %}
+                    <button id="tags-more-btn" class="topic-pill mt-1" style="background:none;border:none;cursor:pointer;color:#0a8c4a;font-size:0.72rem;">
+                        More &rsaquo;
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-12 col-md-10">
+            {% else %}
+            <div class="col-12">
+            {% endif %}
+                {% block content %}{% endblock %}
+            </div>
+        </div>
     </div>
     <br>
     {% block footer %}
@@ -155,5 +214,26 @@
     {% endblock %}
 
     {{ bootstrap.load_js() }}
+    <script>
+    (function () {
+        var btn = document.getElementById('tags-more-btn');
+        if (!btn) return;
+        btn.addEventListener('click', function () {
+            fetch('{{ url_for("main.tags_more") }}')
+                .then(function (r) { return r.json(); })
+                .then(function (tags) {
+                    var container = document.getElementById('tags-container');
+                    tags.forEach(function (item) {
+                        var a = document.createElement('a');
+                        a.href = '/tag/' + item.tag;
+                        a.className = 'topic-pill';
+                        a.innerHTML = item.tag + '<span class="topic-count">' + item.count + '</span>';
+                        container.appendChild(a);
+                    });
+                    btn.remove();
+                });
+        });
+    }());
+    </script>
 </body>
 </html>

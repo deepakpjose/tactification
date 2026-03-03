@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}
+<title>{{ tag }} — Tactification</title>
+{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <h5 class="fw-bold text-uppercase" style="letter-spacing:0.08em;">
+    #{{ tag }}
+  </h5>
+  <p class="text-muted small">{{ posts|length + trivias|length }} result{{ 's' if (posts|length + trivias|length) != 1 }}</p>
+</div>
+
+{% if posts %}
+<div class="d-flex align-items-center mb-3">
+  <span class="divider-title">Articles</span>
+  <div class="flex-grow-1 ms-3" style="height:2px; background: linear-gradient(90deg, #0a8c4a, rgba(10,140,74,0));"></div>
+</div>
+
+{% for post in posts %}
+<div class="row justify-content-end mb-1">
+  <div class="col-2">
+    <a href="{{ url_for('main.post', id=post.id, header=post.header) }}">
+      <h6 class="font-weight-normal text-dark text-left">{{ post.date }}</h6>
+    </a>
+  </div>
+  <div class="col-10">
+    <a href="{{ url_for('main.post', id=post.id, header=post.header) }}">
+      <h6 class="font-weight-normal text-dark text-left">{{ post.header }}</h6>
+    </a>
+  </div>
+</div>
+{% endfor %}
+{% endif %}
+
+{% if trivias %}
+<div class="d-flex align-items-center mb-3 mt-4">
+  <span class="divider-title">Trivias</span>
+  <div class="flex-grow-1 ms-3" style="height:2px; background: linear-gradient(90deg, #0a8c4a, rgba(10,140,74,0));"></div>
+</div>
+
+{% for trivia in trivias %}
+<div class="row justify-content-end mb-1">
+  <div class="col-2">
+    <a href="{{ url_for('main.trivia', id=trivia.id, header=trivia.header) }}">
+      <h6 class="font-weight-normal text-dark text-left">{{ trivia.date }}</h6>
+    </a>
+  </div>
+  <div class="col-10">
+    <a href="{{ url_for('main.trivia', id=trivia.id, header=trivia.header) }}">
+      <h6 class="font-weight-normal text-dark text-left">{{ trivia.header }}</h6>
+    </a>
+  </div>
+</div>
+{% endfor %}
+{% endif %}
+
+{% if not posts and not trivias %}
+<p class="text-muted">No content found for this topic.</p>
+{% endif %}
+
+{% endblock %}
