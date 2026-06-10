@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-app="docker.tactification"
+app="techtok_tactification"
 
 # Build the image (same steps as start.sh)
 docker build --build-arg SECRET_KEY=$1 -t ${app} .

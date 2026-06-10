@@ -1,5 +1,5 @@
 .hero-pitch {
-  background: linear-gradient(135deg, #0b1e3b 0%, #0a8c4a 60%, #0f9d58 100%);
+  background: linear-gradient(90deg, #0b1e3b 0%, #1565c0 80%, #1976d2 100%);
   color: #f7f9fb;
   border-radius: 16px;
   box-shadow: 0 14px 40px rgba(0, 0, 0, 0.25);
@@ -80,3 +80,4 @@
   font-weight: 800;
   color: #0b1e3b;
 }
+
