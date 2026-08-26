@@ -64,10 +64,6 @@ def create_app():
     if "auth" not in app.blueprints:
         app.register_blueprint(auth_blueprint, url_prefix="/auth")
 
-    from app import tags
-    with app.app_context():
-        tags.rebuild()
-
     return app
 
 

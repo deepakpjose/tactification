@@ -2,14 +2,33 @@
 all db classes and attributes are defined in this function
 """
 import logging
+import re
 from datetime import datetime
 from random import sample
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from flask import current_app, url_for, Markup
 from flask_login import UserMixin, AnonymousUserMixin
+from sqlalchemy import event
 from app import db
 from . import login_manager
+
+_TAG_RE = re.compile(r"<[^>]+>")
+_WORDS_PER_MINUTE = 200
+
+
+def compute_word_stats(html_body):
+    """
+    Strips HTML tags from a body of content and returns (word_count, read_time)
+    where read_time is in whole minutes, rounded up to a minimum of 1 for any
+    non-empty body.
+    """
+    if not html_body:
+        return 0, 0
+    text = _TAG_RE.sub(" ", html_body)
+    word_count = len(text.split())
+    read_time = max(1, round(word_count / _WORDS_PER_MINUTE)) if word_count else 0
+    return word_count, read_time
 
 _MONTHNAMES = [
     None,
@@ -254,6 +273,8 @@ class Post(db.Model):
 
     post_type = db.Column(db.Integer)
     visit_count = db.Column(db.Integer, server_default='0', nullable=False)
+    word_count = db.Column(db.Integer, server_default='0', nullable=False)
+    read_time = db.Column(db.Integer, server_default='0', nullable=False)
 
     def month_of_date(self, month):
         return _MONTHNAMES[month]
@@ -295,6 +316,8 @@ class Trivia(db.Model):
     post_type = db.Column(db.Integer)
     url = db.Column(db.String(256))
     visit_count = db.Column(db.Integer, server_default='0', nullable=False)
+    word_count = db.Column(db.Integer, server_default='0', nullable=False)
+    read_time = db.Column(db.Integer, server_default='0', nullable=False)
 
     def month_of_date(self, month):
         return _MONTHNAMES[month]
@@ -320,6 +343,19 @@ class Trivia(db.Model):
         trivia_info = 'Id: {id} header: {header}'
         logging.info(trivia_info.format(id=self.id, header=self.header))
         return
+
+@event.listens_for(Post, "before_insert")
+@event.listens_for(Post, "before_update")
+@event.listens_for(Trivia, "before_insert")
+@event.listens_for(Trivia, "before_update")
+def _set_read_stats(mapper, connection, target):
+    """
+    Populates word_count/read_time from body whenever a Post or Trivia is
+    inserted/updated, so the values are stored on write rather than derived
+    at render time.
+    """
+    target.word_count, target.read_time = compute_word_stats(target.body)
+
 
 @login_manager.user_loader
 def load_user(user_id):

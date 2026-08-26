@@ -37,6 +37,10 @@
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="me-1"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/></svg>
                   {{ post.visit_count }} views
                 </span>
+                <span class="d-flex align-items-center" title="{{ post.word_count }} words">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="me-1"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                  {{ post.read_time }} min read
+                </span>
               </div>
             </div>
             <div class="col-md-5">
@@ -96,7 +100,7 @@
                 <div class="card-body py-3">
                   <div class="d-flex justify-content-between align-items-center mb-2 text-white-50">
                     <span class="badge bg-success">{{ post.trivia_date_in_isoformat() }}</span>
-                    <span class="small">Read</span>
+                    <span class="small">{{ post.read_time }} min read</span>
                   </div>
                   <h6 class="card-title text-white mb-0">{{ post.header }}</h6>
                 </div>

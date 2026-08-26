@@ -40,6 +40,8 @@
       <th>Title</th>
       <th>Date</th>
       <th class="text-end">Views</th>
+      <th class="text-end">Words</th>
+      <th class="text-end">Read time</th>
     </tr>
   </thead>
   <tbody>
@@ -48,9 +50,11 @@
       <td><a href="{{ url_for('main.post', id=post.id, header=post.header) }}">{{ post.header }}</a></td>
       <td>{{ post.post_date_in_isoformat() }}</td>
       <td class="text-end">{{ post.visit_count }}</td>
+      <td class="text-end">{{ post.word_count }}</td>
+      <td class="text-end">{{ post.read_time }} min</td>
     </tr>
     {% else %}
-    <tr><td colspan="3" class="text-muted">No posts yet.</td></tr>
+    <tr><td colspan="5" class="text-muted">No posts yet.</td></tr>
     {% endfor %}
   </tbody>
 </table>
@@ -65,6 +69,8 @@
       <th>Title</th>
       <th>Date</th>
       <th class="text-end">Views</th>
+      <th class="text-end">Words</th>
+      <th class="text-end">Read time</th>
     </tr>
   </thead>
   <tbody>
@@ -73,9 +79,11 @@
       <td><a href="{{ url_for('main.trivia', id=trivia.id, header=trivia.header) }}">{{ trivia.header }}</a></td>
       <td>{{ trivia.trivia_date_in_isoformat() }}</td>
       <td class="text-end">{{ trivia.visit_count }}</td>
+      <td class="text-end">{{ trivia.word_count }}</td>
+      <td class="text-end">{{ trivia.read_time }} min</td>
     </tr>
     {% else %}
-    <tr><td colspan="3" class="text-muted">No trivias yet.</td></tr>
+    <tr><td colspan="5" class="text-muted">No trivias yet.</td></tr>
     {% endfor %}
   </tbody>
 </table>
