@@ -91,6 +91,21 @@ def get_trivias_for_tag(tag):
     return _cache['trivia'].get(tag.lower(), [])
 
 
+def get_related_ids(item, kind, limit=3):
+    """
+    Ids of other items of the same kind sharing the most tags with `item`,
+    best match first. Items tied on shared-tag count keep cache order
+    (roughly most-recent-first, since items are appended as they're built).
+    """
+    _ensure(kind)
+    scores = Counter()
+    for tag in _tag_list(item.tags):
+        for entry in _cache[kind].get(tag, []):
+            if entry['id'] != item.id:
+                scores[entry['id']] += 1
+    return [id_ for id_, _ in scores.most_common(limit)]
+
+
 # ── Incremental mutations ─────────────────────────────────────────────────────
 
 def _tag_list(tags_str):

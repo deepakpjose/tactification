@@ -80,12 +80,6 @@ def triviasindex():
 
     return render_template("triviaarchive.html", posts=trivias, visit_count=visit_count)
 
-@main.route("/videos", methods=["GET"])
-def videos():
-    app.logger.info('Hello tactification.com/articles')
-    visit_count = _record_static_visit("videos")
-    return render_template("videos.html", visit_count=visit_count)
-
 @main.route("/post/<int:id>/<string:header>", methods=["GET", "POST"])
 def post(id, header):
     if id < 0:
@@ -95,16 +89,24 @@ def post(id, header):
     if page is None:
         return render_template("error.html", "Post {:s} not present".format(id))
 
-    all_post_ids = [r[0] for r in db.session.query(Post.id).filter_by(post_type=PostType.POSTER).all()]
-    random_ids = sample(all_post_ids, min(3, len(all_post_ids)))
-    random_posts = Post.query.filter(Post.id.in_(random_ids)).all()
+    related_ids = tag_cache.get_related_ids(page, 'post', limit=3)
+    if len(related_ids) < 3:
+        all_post_ids = [r[0] for r in db.session.query(Post.id).filter_by(post_type=PostType.POSTER).all()]
+        exclude = set(related_ids) | {page.id}
+        fill_candidates = [i for i in all_post_ids if i not in exclude]
+        fill_count = 3 - len(related_ids)
+        related_ids += sample(fill_candidates, min(fill_count, len(fill_candidates)))
+
+    related_posts = Post.query.filter(Post.id.in_(related_ids)).all()
+    order = {id_: idx for idx, id_ in enumerate(related_ids)}
+    related_posts.sort(key=lambda p: order[p.id])
 
     page.visit_count += 1
     db.session.commit()
 
     #Making body markup safe using Markup class from flask.
     markup = Markup(page.body)
-    return render_template("post.html", post=page, markup=markup, random_posts=random_posts)
+    return render_template("post.html", post=page, markup=markup, random_posts=related_posts)
 
 @main.route("/trivia/<int:id>/<string:header>", methods=["GET", "POST"])
 def trivia(id, header):
@@ -117,15 +119,24 @@ def trivia(id, header):
 
     # Making body markup safe using Markup class from flask.
     markup = Markup(trivia_item.body)
-    all_trivia_ids = [r[0] for r in db.session.query(Trivia.id).filter_by(post_type=PostType.TRIVIA).all()]
-    random_ids = sample(all_trivia_ids, min(5, len(all_trivia_ids)))
-    random_posts = Trivia.query.filter(Trivia.id.in_(random_ids)).all()
+
+    related_ids = tag_cache.get_related_ids(trivia_item, 'trivia', limit=5)
+    if len(related_ids) < 5:
+        all_trivia_ids = [r[0] for r in db.session.query(Trivia.id).filter_by(post_type=PostType.TRIVIA).all()]
+        exclude = set(related_ids) | {trivia_item.id}
+        fill_candidates = [i for i in all_trivia_ids if i not in exclude]
+        fill_count = 5 - len(related_ids)
+        related_ids += sample(fill_candidates, min(fill_count, len(fill_candidates)))
+
+    related_trivias = Trivia.query.filter(Trivia.id.in_(related_ids)).all()
+    order = {id_: idx for idx, id_ in enumerate(related_ids)}
+    related_trivias.sort(key=lambda t: order[t.id])
 
     trivia_item.visit_count += 1
     db.session.commit()
 
     return render_template("trivia.html", post=trivia_item,
-                           markup=markup, random_posts=random_posts)
+                           markup=markup, random_posts=related_trivias)
     
 @main.route("/download_file/<int:id>/<filename>", methods=["GET"])
 def download_file(id, filename):
