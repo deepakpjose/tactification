@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}
+<title>Social Media Followers | Tactification</title>
+{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Club YouTube Followers</h2>
+{% if not month_labels %}
+<p class="text-muted mb-4">No data yet &mdash; check back after the next monthly refresh.</p>
+{% endif %}
+
+{% for league in league_order %}
+{% set clubs = clubs_by_league.get(league, []) %}
+<div class="d-flex align-items-center mb-3">
+  <span class="divider-title">{{ league_labels[league] }}</span>
+  <div class="flex-grow-1 ms-3" style="height:2px; background: linear-gradient(90deg, #0a8c4a, rgba(10,140,74,0));"></div>
+</div>
+<div class="table-responsive mb-5">
+<table class="table table-striped table-sm">
+  <thead>
+    <tr>
+      <th>Club</th>
+      {% for month_label in month_labels %}
+      <th class="text-end">{{ month_label }}</th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for club, row in clubs %}
+    <tr>
+      <td>{{ club.name }}</td>
+      {% for value in row %}
+      <td class="text-end">{{ "{:,}".format(value) if value is not none else "-" }}</td>
+      {% endfor %}
+    </tr>
+    {% else %}
+    <tr><td colspan="{{ month_labels|length + 1 }}" class="text-muted">No data yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endfor %}
+{% endblock %}

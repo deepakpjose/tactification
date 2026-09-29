@@ -3,6 +3,9 @@ FROM tiangolo/uwsgi-nginx-flask:python3.8
 ARG SECRET_KEY
 ENV SECRET_KEY=${SECRET_KEY}
 
+ARG YOUTUBE_API_KEY
+ENV YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
+
 ENV STATIC_URL /static
 ENV STATIC_PATH /var/www/app/static
 ENV UWSGI_INI  /var/www/app.ini

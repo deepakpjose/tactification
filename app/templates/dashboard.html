@@ -87,4 +87,21 @@
     {% endfor %}
   </tbody>
 </table>
+
+<div class="d-flex align-items-center mb-3">
+  <span class="divider-title">Social Media</span>
+  <div class="flex-grow-1 ms-3" style="height:2px; background: linear-gradient(90deg, #0a8c4a, rgba(10,140,74,0));"></div>
+</div>
+<p class="mb-2">
+  Tracking {{ social_club_count }} club{{ 's' if social_club_count != 1 }}.
+  {% if social_last_updated %}
+  Last updated: <strong>{{ social_last_updated }}</strong>.
+  {% else %}
+  No YouTube stats fetched yet.
+  {% endif %}
+</p>
+<form method="post" action="{{ url_for('auth.refresh_social_media') }}" class="mb-5">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button type="submit" class="btn btn-success btn-sm">Refresh YouTube follower counts</button>
+</form>
 {% endblock %}

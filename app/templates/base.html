@@ -124,6 +124,14 @@
       font-size: 0.65rem;
       opacity: 0.5;
     }
+    /* Reserve a fixed-ratio box for post images so the layout never
+       shifts while they load (CLS). */
+    .img-hero,
+    .card-img-top {
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      width: 100%;
+    }
     </style>
 
     <!-- Google tag (gtag.js) - deferred page view -->
@@ -160,6 +168,9 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('main.triviasindex')}}">Trivias</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.socialmedia')}}">Clout Count</a>
                     </li>
                     {% if current_user.is_authenticated %}
                     <li class="nav-item">

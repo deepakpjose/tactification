@@ -40,7 +40,7 @@
       <div class="col-md-5">
         {% if featured and featured.url %}
         <a class="card border-0 d-block" style="border-radius:16px; box-shadow:0 12px 30px rgba(0,0,0,0.25);" href="{{ url_for('main.post', id=featured.id, header=featured.header) }}">
-          <img src="{{ featured.url }}" alt="{{ featured.header }}" class="w-100" style="height:auto; display:block; border-radius:16px;" width="600" fetchpriority="high">
+          <img src="{{ featured.url }}" alt="{{ featured.header }}" class="img-hero" style="display:block; border-radius:16px;" width="600" fetchpriority="high">
         </a>
         {% else %}
         <div class="card border-0 bg-white text-dark p-3" style="border-radius:14px;">

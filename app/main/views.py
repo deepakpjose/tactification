@@ -12,7 +12,7 @@ from concurrent import futures
 from flask import render_template, url_for, send_from_directory, request, make_response, session, redirect, jsonify, Markup
 from flask import send_from_directory
 from app import app, db, tags as tag_cache
-from app.models import Post, PostType, Trivia, PageVisit
+from app.models import Post, PostType, Trivia, PageVisit, Club, YoutubeFollowerStat, League, format_year_month
 from . import main
 
 mail_req_q = Queue()
@@ -50,6 +50,54 @@ def index():
     )
 
     return render_template("index.html", posts=posts, pagination=pagination, trivias=trivias, visit_count=visit_count)
+
+@main.route("/socialmedia", methods=["GET"])
+def socialmedia():
+    app.logger.info('Hello tactification.com/socialmedia')
+    visit_count = _record_static_visit("socialmedia")
+
+    months = (
+        db.session.query(YoutubeFollowerStat.year, YoutubeFollowerStat.month)
+        .distinct()
+        .order_by(YoutubeFollowerStat.year.asc(), YoutubeFollowerStat.month.asc())
+        .all()
+    )
+    month_labels = [format_year_month(year, month) for year, month in months]
+
+    clubs_by_league = {league: [] for league in League.ORDER}
+
+    if months:
+        clubs = Club.query.order_by(Club.league, Club.name).all()
+        stats = YoutubeFollowerStat.query.filter(
+            YoutubeFollowerStat.club_id.in_([club.id for club in clubs])
+        ).all()
+
+        counts_by_club = {}
+        for stat in stats:
+            counts_by_club.setdefault(stat.club_id, {})[(stat.year, stat.month)] = stat.subscriber_count
+
+        for club in clubs:
+            counts = counts_by_club.get(club.id, {})
+            row = [counts.get(ym) for ym in months]
+            clubs_by_league.setdefault(club.league, []).append((club, row))
+
+        def latest_count(row):
+            for value in reversed(row):
+                if value is not None:
+                    return value
+            return -1
+
+        for league in clubs_by_league:
+            clubs_by_league[league].sort(key=lambda pair: latest_count(pair[1]), reverse=True)
+
+    return render_template(
+        "socialmedia.html",
+        league_labels=League.LABELS,
+        league_order=League.ORDER,
+        clubs_by_league=clubs_by_league,
+        month_labels=month_labels,
+        visit_count=visit_count,
+    )
 
 @main.route("/aboutme", methods=["GET"])
 def aboutme():

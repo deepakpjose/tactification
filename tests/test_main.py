@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 from app import db
-from app.models import Post, PostType, Trivia
+from app.models import Post, PostType, Trivia, Club, YoutubeFollowerStat, League
 
 
 def seed_content():
@@ -34,13 +34,12 @@ def test_index_shows_posts(client, app_instance):
     assert b"Header" in response.data
 
 
-def test_archives_and_videos(client, app_instance):
+def test_archives_and_about(client, app_instance):
     with app_instance.app_context():
         seed_content()
 
     assert client.get("/postindex").status_code == 200
     assert client.get("/triviasindex").status_code == 200
-    assert client.get("/videos").status_code == 200
     assert client.get("/aboutme").status_code == 200
 
 
@@ -84,3 +83,33 @@ def test_robots_txt_served(client):
     response = client.get("/robots.txt")
     assert response.status_code == 200
     assert b"User-agent" in response.data
+
+
+def test_socialmedia_page_empty(client, app_instance):
+    response = client.get("/socialmedia")
+    assert response.status_code == 200
+    assert b"No data yet" in response.data
+
+
+def test_socialmedia_page_shows_month_columns(client, app_instance):
+    with app_instance.app_context():
+        club = Club(name="Arsenal", league=League.EPL, youtube_handle="@Arsenal")
+        db.session.add(club)
+        db.session.commit()
+
+        db.session.add(YoutubeFollowerStat(
+            club_id=club.id, year=2026, month=8, subscriber_count=1000,
+        ))
+        db.session.add(YoutubeFollowerStat(
+            club_id=club.id, year=2026, month=9, subscriber_count=1234567,
+        ))
+        db.session.commit()
+
+    response = client.get("/socialmedia")
+    assert response.status_code == 200
+    assert b"Arsenal" in response.data
+    # Both months should show up as columns, not just the latest.
+    assert b"Aug 2026" in response.data
+    assert b"Sep 2026" in response.data
+    assert b"1,000" in response.data
+    assert b"1,234,567" in response.data

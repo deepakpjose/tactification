@@ -47,6 +47,13 @@ _MONTHNAMES = [
 ]
 
 
+def format_year_month(year, month):
+    """
+    e.g. (2026, 9) -> "Sep 2026". Used for the /socialmedia snapshot label.
+    """
+    return "{:s} {:d}".format(_MONTHNAMES[month], year)
+
+
 class PostType:
     BLOG = 0x1
     ZINES = 0x2
@@ -371,3 +378,73 @@ class PageVisit(db.Model):
     __tablename__ = "page_visits"
     page = db.Column(db.String(64), primary_key=True)
     count = db.Column(db.Integer, server_default='0', nullable=False)
+
+
+class League:
+    """
+    Leagues tracked on the /socialmedia page.
+    """
+
+    EPL = "epl"
+    LALIGA = "laliga"
+    SERIEA = "seriea"
+    BUNDESLIGA = "bundesliga"
+    LIGUE1 = "ligue1"
+
+    LABELS = {
+        EPL: "Premier League",
+        LALIGA: "La Liga",
+        SERIEA: "Serie A",
+        BUNDESLIGA: "Bundesliga",
+        LIGUE1: "Ligue 1",
+    }
+
+    ORDER = [EPL, LALIGA, SERIEA, BUNDESLIGA, LIGUE1]
+
+
+class Club(db.Model):
+    """
+    A football club tracked for social media follower counts.
+    """
+
+    __tablename__ = "clubs"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(64), nullable=False)
+    league = db.Column(db.String(16), nullable=False, index=True)
+    # Handle used to resolve the channel via the YouTube API (e.g. "@Arsenal").
+    youtube_handle = db.Column(db.String(64))
+    # Cached once resolved, so later refreshes can query by id directly.
+    youtube_channel_id = db.Column(db.String(64))
+
+    stats = db.relationship("YoutubeFollowerStat", backref="club", lazy="dynamic")
+
+    def league_label(self):
+        return League.LABELS.get(self.league, self.league)
+
+    def __repr__(self):
+        return "<Club %r (%s)>" % (self.name, self.league)
+
+
+class YoutubeFollowerStat(db.Model):
+    """
+    A monthly snapshot of a club's YouTube subscriber count.
+    One row per (club, year, month) -- refreshing mid-month overwrites it
+    rather than adding a duplicate snapshot for that month.
+    """
+
+    __tablename__ = "youtube_follower_stats"
+    id = db.Column(db.Integer, primary_key=True)
+    club_id = db.Column(db.Integer, db.ForeignKey("clubs.id"), nullable=False, index=True)
+    year = db.Column(db.Integer, nullable=False)
+    month = db.Column(db.Integer, nullable=False)
+    subscriber_count = db.Column(db.Integer, nullable=False)
+    fetched_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        db.UniqueConstraint("club_id", "year", "month", name="uq_club_year_month"),
+    )
+
+    def __repr__(self):
+        return "<YoutubeFollowerStat club_id=%r %d-%02d: %d>" % (
+            self.club_id, self.year, self.month, self.subscriber_count,
+        )

@@ -18,11 +18,15 @@ from flask import (
 from flask_login import current_user, login_required, login_user, logout_user
 from app import db, app
 from app import tags as tag_cache
+from app import social
 from app.auth import auth
-from app.models import User, Permission, Role, Post, PostType, Trivia, PageVisit
+from app.models import (
+    User, Permission, Role, Post, PostType, Trivia, PageVisit,
+    Club, YoutubeFollowerStat, League, format_year_month,
+)
 from werkzeug.utils import secure_filename
 from app.auth.forms import LoginForm, PosterCreateForm, PosterEditForm, TriviaCreateForm, TriviaEditForm
-from app.auth.decorators import permission_required
+from app.auth.decorators import permission_required, admin_required
 from app.auth.utils import allowed_file
 
 
@@ -32,7 +36,40 @@ def dashboard():
     static_visits = PageVisit.query.order_by(PageVisit.count.desc()).all()
     posts = Post.query.filter_by(post_type=PostType.POSTER).order_by(Post.visit_count.desc()).all()
     trivias = Trivia.query.filter_by(post_type=PostType.TRIVIA).order_by(Trivia.visit_count.desc()).all()
-    return render_template("dashboard.html", static_visits=static_visits, posts=posts, trivias=trivias)
+
+    latest = (
+        db.session.query(YoutubeFollowerStat.year, YoutubeFollowerStat.month)
+        .order_by(YoutubeFollowerStat.year.desc(), YoutubeFollowerStat.month.desc())
+        .first()
+    )
+    social_last_updated = format_year_month(latest[0], latest[1]) if latest else None
+    social_club_count = Club.query.count()
+
+    return render_template(
+        "dashboard.html",
+        static_visits=static_visits,
+        posts=posts,
+        trivias=trivias,
+        social_last_updated=social_last_updated,
+        social_club_count=social_club_count,
+    )
+
+
+@auth.route("/socialmedia/refresh", methods=["POST"])
+@login_required
+@admin_required
+def refresh_social_media():
+    try:
+        results = social.refresh_all_clubs()
+    except RuntimeError as exc:
+        flash(str(exc))
+        return redirect(url_for("auth.dashboard"))
+
+    flash("Updated {:d} clubs' YouTube stats.".format(results["updated"]))
+    if results["failed"]:
+        failed_names = ", ".join(name for name, _ in results["failed"][:10])
+        flash("Failed for: {:s}".format(failed_names))
+    return redirect(url_for("auth.dashboard"))
 
 
 @auth.route("/login", methods=["POST", "GET"])

@@ -5,6 +5,8 @@ from flask_bootstrap import Bootstrap
 from flask_wtf import CSRFProtect
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
+from sqlalchemy import event
+from sqlalchemy.engine import Engine
 from .config import Config
 
 from logging.config import dictConfig
@@ -32,6 +34,22 @@ app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
 bootstrap = Bootstrap(app)
 csrf = CSRFProtect(app)
 db = SQLAlchemy(app)
+
+
+@event.listens_for(Engine, "connect")
+def _enable_sqlite_wal(dbapi_connection, connection_record):
+    """
+    WAL mode lets readers proceed without blocking on a concurrent writer
+    (and vice versa), instead of SQLite's default rollback-journal mode
+    where any write locks out all other readers/writers for its duration.
+    """
+    if not app.config["SQLALCHEMY_DATABASE_URI"].startswith("sqlite"):
+        return
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA journal_mode=WAL")
+    cursor.close()
+
+
 login_manager = LoginManager(app)
 login_manager.session_protection = "strong"
 login_manager.login_view = "auth.login"
