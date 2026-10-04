@@ -3,6 +3,7 @@ all db classes and attributes are defined in this function
 """
 import logging
 import re
+import secrets
 from datetime import datetime
 from random import sample
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -447,4 +448,49 @@ class YoutubeFollowerStat(db.Model):
     def __repr__(self):
         return "<YoutubeFollowerStat club_id=%r %d-%02d: %d>" % (
             self.club_id, self.year, self.month, self.subscriber_count,
+        )
+
+
+class NewsletterSubscriber(db.Model):
+    """
+    An email signed up for the quarterly post digest.
+
+    `token` doubles as the confirm and unsubscribe link secret, so it is
+    rotated on every (re)subscribe to invalidate any older emailed link.
+    """
+
+    __tablename__ = "newsletter_subscribers"
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, index=True, nullable=False)
+    token = db.Column(db.String(64), unique=True, index=True, nullable=False)
+    confirmed = db.Column(db.Boolean, default=False, nullable=False)
+    active = db.Column(db.Boolean, default=True, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    confirmed_at = db.Column(db.DateTime)
+
+    @staticmethod
+    def generate_token():
+        return secrets.token_urlsafe(32)
+
+    def __repr__(self):
+        return "<NewsletterSubscriber %r confirmed=%r active=%r>" % (
+            self.email, self.confirmed, self.active,
+        )
+
+
+class NewsletterDigest(db.Model):
+    """
+    A record of each quarterly digest send, used to find which posts are
+    "new since the last digest" the next time one goes out.
+    """
+
+    __tablename__ = "newsletter_digests"
+    id = db.Column(db.Integer, primary_key=True)
+    sent_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    post_count = db.Column(db.Integer, nullable=False)
+    recipient_count = db.Column(db.Integer, nullable=False)
+
+    def __repr__(self):
+        return "<NewsletterDigest sent_at=%r posts=%d recipients=%d>" % (
+            self.sent_at, self.post_count, self.recipient_count,
         )

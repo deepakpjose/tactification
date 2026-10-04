@@ -5,6 +5,7 @@ import os
 import sys
 import traceback
 import logging
+from datetime import datetime
 from flask import (
     redirect,
     url_for,
@@ -23,11 +24,52 @@ from app.auth import auth
 from app.models import (
     User, Permission, Role, Post, PostType, Trivia, PageVisit,
     Club, YoutubeFollowerStat, League, format_year_month,
+    NewsletterSubscriber, NewsletterDigest,
 )
 from werkzeug.utils import secure_filename
 from app.auth.forms import LoginForm, PosterCreateForm, PosterEditForm, TriviaCreateForm, TriviaEditForm
 from app.auth.decorators import permission_required, admin_required
 from app.auth.utils import allowed_file
+from app.brevo import send_email
+
+
+def _pending_digest_items():
+    """
+    Posts and trivia published since the last digest send (or ever, if none
+    sent), normalized to a common shape so the dashboard preview and the
+    digest email can render both content types the same way.
+    """
+    last_digest = NewsletterDigest.query.order_by(NewsletterDigest.sent_at.desc()).first()
+    since = last_digest.sent_at if last_digest else datetime.min
+
+    posts = Post.query.filter(Post.post_type == PostType.POSTER, Post.timestamp > since).all()
+    trivias = Trivia.query.filter(Trivia.post_type == PostType.TRIVIA, Trivia.date > since).all()
+
+    items = [
+        {
+            "header": p.header,
+            "date": p.timestamp,
+            "date_label": p.post_date_in_isoformat(),
+            "read_time": p.read_time,
+            "description": p.description,
+            "endpoint": "main.post",
+            "url_args": {"id": p.id, "header": p.header},
+        }
+        for p in posts
+    ] + [
+        {
+            "header": t.header,
+            "date": t.date,
+            "date_label": t.trivia_date_in_isoformat(),
+            "read_time": t.read_time,
+            "description": None,
+            "endpoint": "main.trivia",
+            "url_args": {"id": t.id, "header": t.header},
+        }
+        for t in trivias
+    ]
+    items.sort(key=lambda item: item["date"])
+    return items, last_digest
 
 
 @auth.route("/dashboard", methods=["GET"])
@@ -45,6 +87,11 @@ def dashboard():
     social_last_updated = format_year_month(latest[0], latest[1]) if latest else None
     social_club_count = Club.query.count()
 
+    newsletter_pending_items, newsletter_last_digest = _pending_digest_items()
+    newsletter_subscriber_count = NewsletterSubscriber.query.filter_by(
+        confirmed=True, active=True
+    ).count()
+
     return render_template(
         "dashboard.html",
         static_visits=static_visits,
@@ -52,7 +99,52 @@ def dashboard():
         trivias=trivias,
         social_last_updated=social_last_updated,
         social_club_count=social_club_count,
+        newsletter_pending_items=newsletter_pending_items,
+        newsletter_last_digest=newsletter_last_digest,
+        newsletter_subscriber_count=newsletter_subscriber_count,
     )
+
+
+@auth.route("/newsletter/send", methods=["POST"])
+@login_required
+@admin_required
+def send_newsletter_digest():
+    pending_items, _ = _pending_digest_items()
+    if not pending_items:
+        flash("No new posts since the last digest -- nothing to send.")
+        return redirect(url_for("auth.dashboard"))
+
+    subscribers = NewsletterSubscriber.query.filter_by(confirmed=True, active=True).all()
+    sent = 0
+    for subscriber in subscribers:
+        unsubscribe_url = url_for(
+            "newsletter.unsubscribe", token=subscriber.token, _external=True
+        )
+        html = render_template(
+            "newsletter/digest_email.html",
+            items=pending_items,
+            unsubscribe_url=unsubscribe_url,
+        )
+        try:
+            send_email(
+                to_email=subscriber.email,
+                subject="What's new on Tactification",
+                html_content=html,
+            )
+            sent += 1
+        except Exception:
+            app.logger.exception("Failed to send newsletter digest to %s", subscriber.email)
+
+    db.session.add(
+        NewsletterDigest(post_count=len(pending_items), recipient_count=sent)
+    )
+    db.session.commit()
+    flash(
+        "Digest ({:d} item{:s}) sent to {:d} of {:d} subscribers.".format(
+            len(pending_items), "s" if len(pending_items) != 1 else "", sent, len(subscribers)
+        )
+    )
+    return redirect(url_for("auth.dashboard"))
 
 
 @auth.route("/socialmedia/refresh", methods=["POST"])

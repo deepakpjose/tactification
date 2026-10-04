@@ -1,10 +1,9 @@
 FROM tiangolo/uwsgi-nginx-flask:python3.8
 
-ARG SECRET_KEY
-ENV SECRET_KEY=${SECRET_KEY}
-
-ARG YOUTUBE_API_KEY
-ENV YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
+# Secrets (SECRET_KEY, YOUTUBE_API_KEY, BREVO_*) are intentionally NOT set
+# here as ARG/ENV: that bakes them into the image layers, readable by
+# anyone who can pull the image or run `docker history`. They're injected
+# at container runtime instead, via docker-compose's `env_file: .env`.
 
 ENV STATIC_URL /static
 ENV STATIC_PATH /var/www/app/static
@@ -13,7 +12,6 @@ ENV PYTHONPATH=/var/www
 ENV APP_PATH=/var/www/app
 
 COPY ./requirements.txt /var/www/requirements.txt
-RUN echo "csrf key is $SECRET_KEY"
 
 RUN pip install -r /var/www/requirements.txt
 

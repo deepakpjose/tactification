@@ -214,6 +214,14 @@
     {% block footer %}
     	<!-- footer --!>
         <footer class="page-footer">
+            <div class="newsletter-signup text-center mb-3">
+                <form method="post" action="{{ url_for('newsletter.subscribe') }}" class="d-inline-flex flex-wrap justify-content-center" style="gap:0.5rem;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="email" name="email" class="form-control form-control-sm" placeholder="you@example.com" required style="max-width:220px;">
+                    <button type="submit" class="btn btn-success btn-sm">Subscribe</button>
+                </form>
+                <div class="small text-muted mt-1">Get a quarterly digest of new posts -- no spam.</div>
+            </div>
     	    <!-- copyright --!>
             <div class="footer-copyright text-center"> &copy; 2021–{{ current_year }}
               <a href="{{ url_for('main.aboutme') }}"> About Me</a>

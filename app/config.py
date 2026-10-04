@@ -15,6 +15,10 @@ class Config:
     YOUTUBE_API_KEY = os.environ.get("YOUTUBE_API_KEY")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+    BREVO_API_KEY = os.environ.get("BREVO_API_KEY")
+    BREVO_SENDER_EMAIL = os.environ.get("BREVO_SENDER_EMAIL")
+    BREVO_SENDER_NAME = os.environ.get("BREVO_SENDER_NAME", "Tactification")
+
     UPLOAD_FOLDER = os.getenv("APP_PATH") + "/docs"
     ALLOWED_EXTENSIONS = {
         "txt",

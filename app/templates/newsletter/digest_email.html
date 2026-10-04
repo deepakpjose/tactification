@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+<body style="font-family: Arial, sans-serif; color: #212529; max-width: 560px; margin: 0 auto;">
+  <h2 style="color: #0a8c4a;">What's new on Tactification</h2>
+  {% for item in items %}
+  <div style="margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #e9ecef;">
+    <h3 style="margin-bottom: 4px;">
+      <a href="{{ url_for(item.endpoint, _external=True, **item.url_args) }}" style="color: #0a8c4a; text-decoration: none;">
+        {{ item.header }}
+      </a>
+    </h3>
+    <p style="color: #6c757d; font-size: 0.85em; margin: 0 0 8px;">
+      {{ item.date_label }} &middot; {{ item.read_time }} min read
+    </p>
+    {% if item.description %}
+    <p style="margin: 0;">{{ item.description }}</p>
+    {% endif %}
+  </div>
+  {% endfor %}
+  <p style="font-size: 0.8em; color: #adb5bd;">
+    You're receiving this because you subscribed at tactification.com.
+    <a href="{{ unsubscribe_url }}" style="color: #adb5bd;">Unsubscribe</a>
+  </p>
+</body>
+</html>

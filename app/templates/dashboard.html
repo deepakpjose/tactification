@@ -104,4 +104,33 @@
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <button type="submit" class="btn btn-success btn-sm">Refresh YouTube follower counts</button>
 </form>
+
+<div class="d-flex align-items-center mb-3">
+  <span class="divider-title">Newsletter</span>
+  <div class="flex-grow-1 ms-3" style="height:2px; background: linear-gradient(90deg, #0a8c4a, rgba(10,140,74,0));"></div>
+</div>
+<p class="mb-2">
+  {{ newsletter_subscriber_count }} confirmed subscriber{{ 's' if newsletter_subscriber_count != 1 }}.
+  {% if newsletter_last_digest %}
+  Last digest sent <strong>{{ newsletter_last_digest.sent_at.strftime('%Y-%m-%d') }}</strong>
+  ({{ newsletter_last_digest.post_count }} item{{ 's' if newsletter_last_digest.post_count != 1 }} to {{ newsletter_last_digest.recipient_count }} subscribers).
+  {% else %}
+  No digest sent yet.
+  {% endif %}
+</p>
+{% if newsletter_pending_items %}
+<p class="mb-2">{{ newsletter_pending_items|length }} item{{ 's' if newsletter_pending_items|length != 1 }} queued for the next digest:</p>
+<ul class="mb-3">
+  {% for item in newsletter_pending_items %}
+  <li><a href="{{ url_for(item.endpoint, **item.url_args) }}">{{ item.header }}</a></li>
+  {% endfor %}
+</ul>
+<form method="post" action="{{ url_for('auth.send_newsletter_digest') }}" class="mb-5"
+      onsubmit="return confirm('Send this digest to {{ newsletter_subscriber_count }} subscriber{{ "s" if newsletter_subscriber_count != 1 }} now?');">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button type="submit" class="btn btn-success btn-sm">Send quarterly digest now</button>
+</form>
+{% else %}
+<p class="text-muted mb-5">No new posts or trivia since the last digest.</p>
+{% endif %}
 {% endblock %}

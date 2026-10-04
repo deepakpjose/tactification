@@ -7,7 +7,7 @@ app="techtok_tactification"
 youtube_api_key=${2:-}
 
 # Build the image (same steps as start.sh)
-docker build --build-arg SECRET_KEY=$1 --build-arg YOUTUBE_API_KEY="${youtube_api_key}" -t ${app} .
+docker build -t ${app} .
 
 # Dev container keeps volume-mounted uploads/db for persistence.
-docker run -d -p 80:80 -v insidecode:/var/www/app/docs ${app}
+docker run -d -p 80:80 -e SECRET_KEY=$1 -e YOUTUBE_API_KEY="${youtube_api_key}" -v insidecode:/var/www/app/docs ${app}
