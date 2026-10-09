@@ -26,4 +26,5 @@ COPY ./nginx.conf /app/nginx.conf
 COPY ./db_migrate.py /var/www/db_migrate.py
 COPY ./docker_migrate.sh /var/www/docker_migrate.sh
 COPY ./seed_social_clubs.py /var/www/seed_social_clubs.py
+COPY ./purge_pending_subscribers.py /var/www/purge_pending_subscribers.py
 COPY ./data /var/www/data

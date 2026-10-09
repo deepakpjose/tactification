@@ -91,6 +91,12 @@ def dashboard():
     newsletter_subscriber_count = NewsletterSubscriber.query.filter_by(
         confirmed=True, active=True
     ).count()
+    # The full list exposes subscriber emails, so only admins get it.
+    newsletter_subscribers = None
+    if current_user.is_administrator():
+        newsletter_subscribers = NewsletterSubscriber.query.order_by(
+            NewsletterSubscriber.created_at.desc()
+        ).all()
 
     return render_template(
         "dashboard.html",
@@ -101,6 +107,7 @@ def dashboard():
         social_club_count=social_club_count,
         newsletter_pending_items=newsletter_pending_items,
         newsletter_last_digest=newsletter_last_digest,
+        newsletter_subscribers=newsletter_subscribers,
         newsletter_subscriber_count=newsletter_subscriber_count,
     )
 

@@ -131,6 +131,40 @@
   <button type="submit" class="btn btn-success btn-sm">Send quarterly digest now</button>
 </form>
 {% else %}
-<p class="text-muted mb-5">No new posts or trivia since the last digest.</p>
+<p class="text-muted mb-3">No new posts or trivia since the last digest.</p>
+{% endif %}
+
+{% if newsletter_subscribers is not none %}
+<p class="mb-2">{{ newsletter_subscribers|length }} subscriber{{ 's' if newsletter_subscribers|length != 1 }} total:</p>
+<table class="table table-striped table-sm mb-5">
+  <thead>
+    <tr>
+      <th>Email</th>
+      <th>Status</th>
+      <th>Subscribed</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for sub in newsletter_subscribers %}
+    <tr>
+      <td>{{ sub.email }}</td>
+      <td>
+        {% if not sub.active %}
+        <span class="text-muted">Unsubscribed</span>
+        {% elif sub.confirmed %}
+        <span style="color:#0a8c4a;">Confirmed</span>
+        {% else %}
+        <span class="text-muted">Pending confirmation</span>
+        {% endif %}
+      </td>
+      <td>{{ sub.created_at.strftime('%Y-%m-%d') if sub.created_at else '—' }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="3" class="text-muted">No subscribers yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="mb-5"></div>
 {% endif %}
 {% endblock %}

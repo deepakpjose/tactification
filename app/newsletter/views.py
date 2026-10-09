@@ -34,6 +34,10 @@ def subscribe():
         # the token so any old emailed link stops working.
         subscriber.token = NewsletterSubscriber.generate_token()
         subscriber.active = True
+        if not subscriber.confirmed:
+            # Restart the pending window so the purge doesn't delete the row
+            # out from under the confirm link we're about to send.
+            subscriber.created_at = datetime.utcnow()
     db.session.commit()
 
     confirm_url = url_for("newsletter.confirm", token=subscriber.token, _external=True)
