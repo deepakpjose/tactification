@@ -113,3 +113,15 @@ def test_socialmedia_page_shows_month_columns(client, app_instance):
     assert b"Sep 2026" in response.data
     assert b"1,000" in response.data
     assert b"1,234,567" in response.data
+
+
+def test_post_page_has_social_preview_tags(client, app_instance):
+    with app_instance.app_context():
+        post, _ = seed_content()
+        post.url = "/download_file/1/photo.webp"
+        db.session.commit()
+        post_id, post_header = post.id, post.header
+
+    html = client.get(f"/post/{post_id}/{post_header}").data.decode()
+    assert '<meta property="og:image" content="http://localhost/download_file/1/photo.webp">' in html
+    assert 'name="twitter:card" content="summary_large_image"' in html

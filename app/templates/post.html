@@ -3,6 +3,20 @@
 {% block meta %}
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="description" content="{{ post.header }}">
+{% set og_url = url_for('main.post', id=post.id, header=post.header, _external=True) %}
+{% if (post.url or '').startswith('http') %}{% set og_image = post.url %}{% else %}{% set og_image = url_for('main.index', _external=True).rstrip('/') ~ (post.url or '') %}{% endif %}
+{% set og_desc = (post.body or '')|striptags|truncate(200) %}
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Tactification">
+<meta property="og:title" content="{{ post.header }}">
+<meta property="og:description" content="{{ og_desc }}">
+<meta property="og:url" content="{{ og_url }}">
+{% if post.url %}<meta property="og:image" content="{{ og_image }}">{% endif %}
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@deepakpjose">
+<meta name="twitter:title" content="{{ post.header }}">
+<meta name="twitter:description" content="{{ og_desc }}">
+{% if post.url %}<meta name="twitter:image" content="{{ og_image }}">{% endif %}
 <link rel="preload" href="{{ url_for('static', filename='css/index.css') }}" as="style">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}" media="print" onload="this.media='all'">
 <noscript>
