@@ -1,0 +1,170 @@
+/*
+ * Styles for the daily puzzle page (templates/daily/play.html).
+ * Everything is scoped under .daily so it can't affect the rest of the site.
+ *
+ * Two themes. Dark is the site's dark card colour with Tactification's
+ * green; light is the same on white. The page follows the device setting
+ * unless the player has picked one with the toggle (data-theme on .daily).
+ * Colours are only ever set through these variables.
+ */
+.daily {
+  --d-bg: #0b1224;
+  --d-surface: #131d35;
+  --d-line: #2a3756;
+  --d-fg: #eef2f5;
+  --d-muted: #9aa8bf;
+  --d-accent: #1fb766;
+  --d-hit: #2a9f5a;      /* green tile: right letter, right place */
+  --d-close: #d9a521;    /* yellow tile: in the name, wrong place */
+  --d-miss: #3b4660;     /* grey tile: not in the name */
+  --d-key: #243150;
+  --d-shadow: rgba(0, 0, 0, 0.25);
+  max-width: 620px;
+  margin: 0 auto;
+  padding: 12px 16px 16px;
+  background: var(--d-bg);
+  color: var(--d-fg);
+  border-radius: 16px;
+  box-shadow: 0 14px 40px var(--d-shadow);
+  display: grid;
+  gap: 18px;
+}
+
+.daily[data-theme="light"] {
+  --d-bg: #ffffff;
+  --d-surface: #f1f4f8;
+  --d-line: #d3dae6;
+  --d-fg: #0b1224;
+  --d-muted: #5b6880;
+  --d-accent: #0a8c4a;
+  --d-hit: #2a9f5a;
+  --d-close: #d9a521;
+  --d-miss: #7d879b;
+  --d-key: #dfe5ee;
+  --d-shadow: rgba(11, 18, 36, 0.12);
+}
+@media (prefers-color-scheme: light) {
+  .daily:not([data-theme]) {
+    --d-bg: #ffffff;
+    --d-surface: #f1f4f8;
+    --d-line: #d3dae6;
+    --d-fg: #0b1224;
+    --d-muted: #5b6880;
+    --d-accent: #0a8c4a;
+    --d-hit: #2a9f5a;
+    --d-close: #d9a521;
+    --d-miss: #7d879b;
+    --d-key: #dfe5ee;
+    --d-shadow: rgba(11, 18, 36, 0.12);
+  }
+}
+
+/* The play area: from where it starts to the bottom of the screen (daily.js
+   measures --daily-top), so clues, board and keyboard fit without scrolling.
+   The board is the flexible part. Below 440px tall it scrolls instead.
+   Without JavaScript (or with no puzzle) it's just as tall as its content. */
+.daily-play { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.daily-play.fitted {
+  height: calc(100vh - var(--daily-top, 100px) - 16px);
+  height: calc(100dvh - var(--daily-top, 100px) - 16px);
+  min-height: 440px; max-height: 820px;
+}
+
+.daily-head { display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  border-bottom: 2px solid var(--d-line); padding-bottom: 8px; }
+.daily-title { margin: 0; font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; font-size: clamp(15px, 4.2vw, 30px);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.daily-title span:last-child { color: var(--d-accent); }
+.daily-meta { display: flex; gap: 6px; align-items: center; flex: none; }
+.daily-help { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--d-muted); padding: 0;
+  background: none; color: var(--d-fg); font-weight: 800; font-size: 14px; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; }
+.daily-chip { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 5px 10px; border-radius: 999px; border: 1px solid var(--d-line); }
+.daily-chip-accent { border-color: var(--d-accent); color: var(--d-accent); }
+.daily-empty { color: var(--d-muted); margin: 0; }
+
+/* The rules pop-up (a native <dialog>). */
+.daily-how { width: min(460px, calc(100vw - 32px)); background: var(--d-surface); color: var(--d-fg);
+  border: 2px solid var(--d-accent); border-radius: 14px; padding: 18px; }
+.daily-how::backdrop { background: rgba(4, 8, 18, 0.7); }
+.daily-how h2 { margin: 0 0 10px; font-size: 18px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; }
+.daily-how ol { margin: 0 0 16px; padding-left: 20px; display: grid; gap: 8px; font-size: 15px; line-height: 1.45; }
+.daily-key-demo { padding: 0 6px; border-radius: 4px; font-weight: 700; color: #fff; }
+.daily-key-demo.hit { background: var(--d-hit); }
+.daily-key-demo.close { background: var(--d-close); color: #2a1d00; }
+.daily-key-demo.miss { background: var(--d-miss); }
+
+/* Clues: the answer's length, then the two facts (locked ones are greyed out). */
+/* Unlocked facts can be long; past a third of the screen they scroll on
+   their own so the board keeps its room. */
+.daily-clues { display: grid; gap: 6px; flex: none; max-height: 33vh; max-height: 33dvh; overflow-y: auto; }
+.daily-clue { border-left: 4px solid var(--d-accent); padding: 0 0 0 12px; }
+.daily-clue.locked { border-left-color: var(--d-line); }
+.daily-clue-label { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--d-accent); }
+.daily-clue.locked .daily-clue-label { color: var(--d-muted); }
+.daily-length { margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; color: var(--d-muted); white-space: nowrap; }
+.daily-fact { margin: 0; font-size: clamp(15px, 3.8vw, 18px); font-style: italic; line-height: 1.3; }
+/* A locked fact is one short line: label and "Unlocks after..." side by side. */
+.daily-clue.locked { display: flex; gap: 8px; align-items: baseline; }
+.daily-clue.locked .daily-fact { font-style: normal; font-size: 13px; color: var(--d-muted); }
+
+/* The board: one row per guess, one tile per letter. --n is the answer
+   length, --rows the number of guesses. It takes the height left over in
+   .daily-play, and each tile is as big as fits both ways (at most 50px). */
+.daily-guesses { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+.daily-board { flex: 1 1 auto; min-height: 0;
+  display: grid; gap: 6px; justify-content: center; align-content: center; }
+.daily-row { --tile: 40px; display: grid; gap: 6px; grid-template-columns: repeat(var(--n), var(--tile)); }
+/* Only once the play area has a height: a size container with no height
+   would shrink the tiles to nothing. */
+.daily-play.fitted .daily-board { container-type: size; }
+@supports (width: 1cqh) {
+  .daily-play.fitted .daily-row { --tile: min(50px, (100cqw - (var(--n) - 1) * 6px) / var(--n),
+                              (100cqh - (var(--rows) - 1) * 6px) / var(--rows)); }
+}
+.daily-tile { aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: calc(var(--tile) * 0.5); text-transform: uppercase;
+  border: 2px solid var(--d-line); border-radius: 6px; }
+.daily-tile.filled { border-color: var(--d-muted); }
+.daily-tile.hit { background: var(--d-hit); border-color: var(--d-hit); color: #fff; }
+.daily-tile.close { background: var(--d-close); border-color: var(--d-close); color: #2a1d00; }
+.daily-tile.miss { background: var(--d-miss); border-color: var(--d-miss); color: #fff; }
+/* The row being typed: tap a tile to change that letter. */
+.daily-tile.editable { cursor: pointer; }
+.daily-tile.cursor { border-color: var(--d-accent); box-shadow: 0 0 0 2px var(--d-accent); }
+.daily-note { text-align: center; color: var(--d-muted); font-size: 14px; margin: 0; }
+.daily-status { text-align: center; min-height: 1.5em; font-weight: 700; margin: 4px 0 0; flex: none; }
+
+/* On-screen keyboard; keys take the colour of the best result for that letter. */
+.daily-keyboard { display: grid; gap: 6px; user-select: none; flex: none; }
+.daily-krow { display: flex; gap: 5px; justify-content: center; }
+.daily-key { flex: 1 1 0; max-width: 44px; height: clamp(36px, 6vh, 52px); border: none; border-radius: 6px; padding: 0;
+  font-weight: 700; font-size: 17px; background: var(--d-key); color: var(--d-fg); cursor: pointer; }
+.daily-key.wide { max-width: 70px; flex-grow: 1.6; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; }
+.daily-key.hit { background: var(--d-hit); color: #fff; }
+.daily-key.close { background: var(--d-close); color: #2a1d00; }
+.daily-key.miss { background: var(--d-miss); color: #fff; opacity: 0.6; }
+.daily-key:focus-visible, .daily-help:focus-visible { outline: 3px solid var(--d-close); outline-offset: 2px; }
+
+.daily-result { background: var(--d-surface); border: 2px solid var(--d-accent); border-radius: 12px; padding: 16px; display: grid; gap: 8px; }
+.daily-result h2 { margin: 0; font-size: 13px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--d-muted); }
+.daily-result h3 { margin: 0; font-size: 30px; font-weight: 800; text-transform: uppercase; }
+.daily-result ul { margin: 0; padding-left: 20px; }
+.daily-result a { color: var(--d-accent); }
+.daily-sources { margin: 0; font-size: 14px; }
+.daily-share { width: 100%; font: 15px/1.4 ui-monospace, Menlo, monospace; color: var(--d-fg);
+  background: var(--d-bg); border: 1px solid var(--d-line); border-radius: 8px; padding: 10px; resize: none; }
+.daily-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+@media (max-width: 420px) {
+  .daily-title-site { display: none; }  /* the site name is in the menu bar above */
+  .daily-key { font-size: 15px; }
+  .daily-krow { gap: 4px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .daily-row.revealed .daily-tile { animation: daily-flip 0.4s ease both; }
+  .daily-row.shake { animation: daily-shake 0.35s; }
+  @keyframes daily-flip { from { transform: rotateX(90deg); } to { transform: none; } }
+  @keyframes daily-shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+}

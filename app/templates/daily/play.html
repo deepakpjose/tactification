@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{# The daily puzzle page. The server draws only the frame; static/js/daily.js
+   fills in the board, keyboard and facts from `state` (see public_state() in
+   app/daily/views.py) and sends each guess to /daily/guess. #}
+
+{% block meta %}
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="description" content="Tactification Daily: guess the footballer from a fascinating fact. A new puzzle every day.">
+{# The page's JavaScript sends this token with each guess; the app's CSRF
+   protection rejects POSTs without it. #}
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Tactification">
+<meta property="og:title" content="Tactification Daily">
+<meta property="og:description" content="Guess the footballer from a fascinating fact. A new puzzle every day.">
+<meta property="og:url" content="{{ url_for('daily.play', _external=True) }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/daily.css') }}">
+{% endblock %}
+
+{% block title %}
+<title>Tactification Daily | Tactification</title>
+{% endblock %}
+
+{% block content %}
+<main class="daily" role="main">
+  {# Applies a saved light/dark choice before anything is drawn, so the page
+     doesn't flash the other theme. With no saved choice the device's
+     setting is used (see daily.css). The toggle is in daily.js. #}
+  <script>
+    try {
+      var dailyTheme = localStorage.getItem("tactification-daily-theme");
+      if (dailyTheme === "light" || dailyTheme === "dark") document.currentScript.parentElement.dataset.theme = dailyTheme;
+    } catch (e) {}
+  </script>
+  {# Everything needed to play (clues, board, keyboard) sits in .daily-play,
+     which daily.js sizes to the height of the screen so nothing scrolls.
+     The rules are in a pop-up, and the result appears below once the game
+     is over. #}
+  <div class="daily-play" id="daily-play">
+  <header class="daily-head">
+    <h1 class="daily-title"><span class="daily-title-site">Tactification </span><span>Daily</span></h1>
+    {% if state %}
+    <div class="daily-meta">
+      <span class="daily-chip" id="daily-number">#{{ state.number }}</span>
+      <span class="daily-chip daily-chip-accent">{{ state.topic }}</span>
+      <button class="daily-help" id="daily-theme" type="button" aria-label="Switch theme"><i class="bi bi-moon-stars-fill" aria-hidden="true"></i></button>
+      <button class="daily-help" id="daily-help" type="button" aria-label="How to play" aria-haspopup="dialog">?</button>
+    </div>
+    {% endif %}
+  </header>
+
+  {% if not state %}
+  {# No approved puzzle is queued for today. #}
+  <p class="daily-empty">There's no puzzle today. Check back tomorrow.</p>
+  </div>
+  {% else %}
+
+  {# Opens automatically on a player's first visit, then from the ? button. #}
+  <dialog class="daily-how" id="daily-how" aria-labelledby="daily-how-title">
+    <h2 id="daily-how-title">How to play</h2>
+    <ol>
+      <li>Guess today's answer: a player, coach, club, country or anything else in football. The label at the top says what kind of answer it is, and the boxes show how many letters.</li>
+      <li>Each guess colours the letters: <span class="daily-key-demo hit">green</span> right letter, right place;
+        <span class="daily-key-demo close">yellow</span> in the name but elsewhere;
+        <span class="daily-key-demo miss">grey</span> not in the name.</li>
+      <li>Stuck? A fact about the answer appears after {{ state.fact_unlock_after[0] }} guesses, and a second one after {{ state.fact_unlock_after[1] }}.</li>
+    </ol>
+    <form method="dialog"><button class="btn btn-success w-100" type="submit">Play</button></form>
+  </dialog>
+
+  <section class="daily-clues" aria-label="Clues">
+    <p class="daily-length" id="daily-length"></p>
+    {# Filled in by daily.js as facts unlock. #}
+    <div class="daily-clue" id="daily-fact-1"></div>
+    <div class="daily-clue" id="daily-fact-2"></div>
+  </section>
+
+  <section class="daily-guesses" aria-label="Guesses">
+    <div class="daily-board" id="daily-board"></div>
+    <p class="daily-status" id="daily-status" role="status" aria-live="polite"></p>
+  </section>
+
+  <section class="daily-keyboard" id="daily-keyboard" aria-label="Keyboard"></section>
+  </div>
+
+  <section class="daily-result" id="daily-result" hidden aria-live="polite">
+    <h2 id="daily-result-title"></h2>
+    <h3 id="daily-answer"></h3>
+    <ul id="daily-answer-facts"></ul>
+    <p class="daily-sources" id="daily-sources"></p>
+    <h2>Share your result</h2>
+    <textarea class="daily-share" id="daily-share" rows="9" readonly aria-label="Shareable result"></textarea>
+    <div class="daily-actions">
+      <button class="btn btn-success" id="daily-copy" type="button">Copy result</button>
+      <span class="daily-note" id="daily-copy-status"></span>
+    </div>
+    <p class="daily-note">A new puzzle is up at midnight UTC.</p>
+  </section>
+
+  {# The initial state goes in as JSON, so the page draws straight away
+     without a second request. tojson escapes it safely for HTML. #}
+  <script id="daily-state" type="application/json">{{ state|tojson }}</script>
+  <script>
+    window.DAILY_CONFIG = {
+      guessUrl: "{{ url_for('daily.guess') }}",
+      shareUrl: "{{ url_for('daily.play', _external=True) }}"
+    };
+  </script>
+  <script src="{{ url_for('static', filename='js/daily.js') }}" defer></script>
+  {% endif %}
+</main>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% from 'bootstrap/form.html' import render_form %}
+{% extends 'base.html' %}
+
+{# Write or edit one puzzle. The form and its checks are in app/daily/forms.py. #}
+
+{% block title %}
+<title>{{ 'Edit ' ~ puzzle.display if puzzle else 'New puzzle' }} | Tactification</title>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">{{ 'Edit: ' ~ puzzle.display if puzzle else 'New puzzle' }}</h2>
+  <a href="{{ url_for('daily.admin') }}">‹ All puzzles</a>
+</div>
+
+<div class="alert alert-secondary small">
+  Before approving: open each source and check every number, date and "never" or "only" claim.
+  Fact 1 must not give the answer away. Full rules: <code>.claude/skills/daily-puzzle/SKILL.md</code>.
+</div>
+
+{{ render_form(form) }}
+
+{% if puzzle and (puzzle.day is none or puzzle.day > today) %}
+<form method="post" action="{{ url_for('daily.admin_delete', id=puzzle.id) }}" class="mt-4 mb-5"
+      onsubmit="return confirm('Delete this puzzle permanently?');">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button type="submit" class="btn btn-outline-danger btn-sm">Delete puzzle</button>
+</form>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{# Admin overview of every daily puzzle, grouped by lifecycle (see
+   FactPuzzle in app/models.py). Routes are in app/daily/admin.py. #}
+
+{% block title %}
+<title>Daily puzzles | Tactification</title>
+{% endblock %}
+
+{% macro divider(title) %}
+<div class="d-flex align-items-center mb-3 mt-4">
+  <span class="divider-title">{{ title }}</span>
+  <div class="flex-grow-1 ms-3" style="height:2px; background: linear-gradient(90deg, #0a8c4a, rgba(10,140,74,0));"></div>
+</div>
+{% endmacro %}
+
+{% macro puzzle_row(puzzle, when) %}
+<tr>
+  <td>{{ when }}</td>
+  <td><strong>{{ puzzle.display }}</strong> <span class="text-muted">{{ puzzle.answer }} · {{ puzzle.answer|length }}</span></td>
+  <td>{{ puzzle.topic }}</td>
+  <td class="text-end"><a class="btn btn-outline-success btn-sm" href="{{ url_for('daily.admin_edit', id=puzzle.id) }}">Edit</a></td>
+</tr>
+{% endmacro %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+  <h2 class="mb-0">Daily puzzles</h2>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('daily.play') }}">View today's game</a>
+    <a class="btn btn-success btn-sm" href="{{ url_for('daily.admin_new') }}">New puzzle</a>
+  </div>
+</div>
+<p class="text-muted">
+  Approved puzzles run one a day, oldest first. Pin one to a date to run it on that day instead.
+  Days run on UTC.
+</p>
+
+{{ divider("Today, " ~ today.strftime('%a %d %b')) }}
+{% if todays %}
+<table class="table table-sm"><tbody>{{ puzzle_row(todays, "Today") }}</tbody></table>
+{% elif queue %}
+<p>Nothing has been picked yet. The first visit today will take <strong>{{ queue[0][0].display }}</strong> from the queue.</p>
+{% else %}
+<p class="text-danger">No puzzle for today: the queue is empty. Approve a draft to fix this.</p>
+{% endif %}
+
+{{ divider("Pinned to a date") }}
+<table class="table table-striped table-sm">
+  <tbody>
+  {% for puzzle in pinned %}{{ puzzle_row(puzzle, puzzle.day.strftime('%a %d %b %Y')) }}
+  {% else %}<tr><td class="text-muted">None pinned.</td></tr>{% endfor %}
+  </tbody>
+</table>
+
+{{ divider("Queue (" ~ queue|length ~ ")") }}
+<p class="text-muted small mb-2">Expected dates assume nothing new is pinned in between.</p>
+<table class="table table-striped table-sm">
+  <tbody>
+  {% for puzzle, expected in queue %}{{ puzzle_row(puzzle, "≈ " ~ expected.strftime('%a %d %b')) }}
+  {% else %}<tr><td class="text-muted">The queue is empty.</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% if queue|length < 7 %}
+<p class="text-warning">Fewer than 7 puzzles queued. Time to approve the next batch.</p>
+{% endif %}
+
+{{ divider("Drafts to check (" ~ drafts|length ~ ")") }}
+<table class="table table-striped table-sm">
+  <tbody>
+  {% for puzzle in drafts %}{{ puzzle_row(puzzle, "Draft") }}
+  {% else %}<tr><td class="text-muted">No drafts.</td></tr>{% endfor %}
+  </tbody>
+</table>
+
+{{ divider("Recently played") }}
+<table class="table table-striped table-sm mb-5">
+  <tbody>
+  {% for puzzle in past %}{{ puzzle_row(puzzle, puzzle.day.strftime('%d %b %Y')) }}
+  {% else %}<tr><td class="text-muted">None yet.</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% endblock %}

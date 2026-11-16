@@ -494,3 +494,45 @@ class NewsletterDigest(db.Model):
         return "<NewsletterDigest sent_at=%r posts=%d recipients=%d>" % (
             self.sent_at, self.post_count, self.recipient_count,
         )
+
+
+class FactPuzzle(db.Model):
+    """
+    One daily puzzle: the answer players spell out, plus the two facts that
+    unlock as they guess. The rules live in app/daily/game.py.
+
+    Lifecycle:
+      draft     -- approved is False. Never shown to players. Facts drafted by
+                   AI start here until a person has checked them.
+      queued    -- approved, no day yet. The next free day takes the oldest
+                   queued puzzle (app/daily/schedule.py).
+      scheduled -- approved with a day. That's the day it runs; a puzzle can
+                   be pinned to a date (an anniversary, say) from the admin.
+    `day` is unique, so two puzzles can never claim the same date.
+    """
+
+    __tablename__ = "fact_puzzles"
+    id = db.Column(db.Integer, primary_key=True)
+    # What players type: A-Z only, 4-12 letters, e.g. "LINEKER".
+    answer = db.Column(db.String(12), nullable=False)
+    # Shown when the puzzle ends, with accents: "Gary Lineker", "Pelé".
+    display = db.Column(db.String(64), nullable=False)
+    # What kind of answer it is, shown as a label: "Player", "Coach",
+    # "Stadium"... Free text, so a puzzle can be about anything in football.
+    topic = db.Column(db.String(24), nullable=False)
+    fact_1 = db.Column(db.Text, nullable=False)
+    fact_2 = db.Column(db.Text, nullable=False)
+    # One URL per line, shown as "Read more" links at the end.
+    sources = db.Column(db.Text, nullable=False)
+    approved = db.Column(db.Boolean, default=False, nullable=False)
+    day = db.Column(db.Date, unique=True, index=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def facts(self):
+        return [self.fact_1, self.fact_2]
+
+    def source_list(self):
+        return [line.strip() for line in (self.sources or "").splitlines() if line.strip()]
+
+    def __repr__(self):
+        return "<FactPuzzle %r day=%s approved=%r>" % (self.answer, self.day, self.approved)

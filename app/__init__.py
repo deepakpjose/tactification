@@ -92,6 +92,13 @@ def create_app():
     if "newsletter" not in app.blueprints:
         app.register_blueprint(newsletter_blueprint, url_prefix="/newsletter")
 
+    # Tactification Daily, the puzzle game: /daily for players, /daily/admin
+    # for writing and approving puzzles. See app/daily/__init__.py.
+    from .daily import daily as daily_blueprint
+
+    if "daily" not in app.blueprints:
+        app.register_blueprint(daily_blueprint, url_prefix="/daily")
+
     return app
 
 
