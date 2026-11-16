@@ -12,6 +12,14 @@ class Config:
     """
 
     SECRET_KEY = os.environ.get("SECRET_KEY")
+
+    # Login and session cookies are only sent over HTTPS, as the live site is
+    # (traefik redirects http to https). For local testing over plain http,
+    # run the container with COOKIE_SECURE=0 or logging in won't stick.
+    SESSION_COOKIE_SECURE = os.environ.get("COOKIE_SECURE", "1") != "0"
+    REMEMBER_COOKIE_SECURE = SESSION_COOKIE_SECURE
+    SESSION_COOKIE_SAMESITE = "Lax"
+    REMEMBER_COOKIE_HTTPONLY = True
     YOUTUBE_API_KEY = os.environ.get("YOUTUBE_API_KEY")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 

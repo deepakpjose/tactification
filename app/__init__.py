@@ -71,6 +71,11 @@ def inject_nav_tags():
 
 
 def create_app():
+    # Without a secret key, sessions, logins and CSRF protection all fail
+    # (or worse, are signed with a guessable value). Better to stop here
+    # with a clear message than to start a half-working site.
+    if not app.config.get("SECRET_KEY"):
+        raise RuntimeError("SECRET_KEY is not set. Put it in the environment (.env) before starting the app.")
 
     from .main import main as main_blueprint
 

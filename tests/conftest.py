@@ -26,6 +26,9 @@ def app_instance(monkeypatch):
             "SQLALCHEMY_DATABASE_URI": "sqlite:////var/www/app/docs/tactification.data.sqlite",
             "SECRET_KEY": "test-secret",
             "SERVER_NAME": "localhost",
+            # The test client talks plain http; HTTPS-only cookies would be dropped.
+            "SESSION_COOKIE_SECURE": False,
+            "REMEMBER_COOKIE_SECURE": False,
         }
     )
 

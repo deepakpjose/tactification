@@ -302,3 +302,30 @@ def test_form_show_helpers(app_instance):
             url="https://example.com",
         )
         assert trivia_form.show() is None
+
+
+@pytest.mark.parametrize("target, expected", [
+    ("/daily/admin", "/daily/admin"),
+    ("https://evil.example/", "/"),
+    ("//evil.example/", "/"),
+    ("/\\evil.example", "/"),
+    ("javascript:alert(1)", "/"),
+])
+def test_login_only_redirects_within_the_site(client, app_instance, target, expected):
+    with app_instance.app_context():
+        create_user("next@example.com", "Administrator")
+    response = client.post(
+        "/auth/login",
+        query_string={"next": target},
+        data={"email": "next@example.com", "password": "secret"},
+        follow_redirects=False,
+    )
+    assert response.status_code == 302
+    assert response.headers["Location"] in (expected, "http://localhost" + expected)
+
+
+def test_app_refuses_to_start_without_secret_key(monkeypatch):
+    from app import app, create_app
+    monkeypatch.setitem(app.config, "SECRET_KEY", None)
+    with pytest.raises(RuntimeError, match="SECRET_KEY"):
+        create_app()

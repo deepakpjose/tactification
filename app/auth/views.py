@@ -3,6 +3,7 @@ All custom login and logout apis are defined here.
 """
 import os
 import sys
+from urllib.parse import urlparse
 import traceback
 import logging
 from datetime import datetime
@@ -28,6 +29,24 @@ from app.models import (
 )
 from werkzeug.utils import secure_filename
 from app.auth.forms import LoginForm, PosterCreateForm, PosterEditForm, TriviaCreateForm, TriviaEditForm
+
+
+def _safe_next():
+    """
+    The ?next= page to go to after logging in or saving, or None.
+
+    Only a path on this site is allowed ("/daily/admin"). Anything else --
+    "https://evil.example", "//evil.example", "/\\evil.example" -- is dropped,
+    or a crafted link could send someone to another site straight after a
+    real login (an "open redirect", handy for phishing).
+    """
+    target = request.args.get("next") or ""
+    if not target.startswith("/") or target.startswith("//") or "\\" in target:
+        return None
+    parts = urlparse(target)
+    if parts.scheme or parts.netloc:
+        return None
+    return target
 from app.auth.decorators import permission_required, admin_required
 from app.auth.utils import allowed_file
 from app.brevo import send_email
@@ -183,7 +202,7 @@ def login():
             if login_user(user, remember=form.remember_me.data) is False:
                 return abort(403)
             flash("Successfully logged in.")
-            return redirect(request.args.get("next") or url_for("main.index"))
+            return redirect(_safe_next() or url_for("main.index"))
         flash("Invalid username or password.")
 
     return render_template("signin.html", loginform=form)
@@ -283,7 +302,7 @@ def writeposters():
             tag_cache.add_item(post, 'post')
 
             flash("Created post")
-            return redirect(request.args.get("next") or url_for("main.index"))
+            return redirect(_safe_next() or url_for("main.index"))
 
         flash("Unacceptable file type")
         return redirect(url_for("auth.writeposters"))
@@ -345,7 +364,7 @@ def editposters(id):
         tag_cache.update_item(post, old_tags, 'post')
         flash("Edited post")
         return redirect(
-            request.args.get("next")
+            _safe_next()
             or url_for("main.post", id=post.id, header=post.header)
         )
 
@@ -370,7 +389,7 @@ def deleteposters(id):
     db.session.commit()
 
     logging.info('file deletion {:s} from db is success'.format(post.doc))
-    return redirect(request.args.get("next") or url_for("main.index"))
+    return redirect(_safe_next() or url_for("main.index"))
 
 @auth.route("/writetrivias", methods=["GET", "POST"])
 @login_required
@@ -400,7 +419,7 @@ def writetrivias():
         tag_cache.add_item(trivia, 'trivia')
 
         flash("Created trivia")
-        return redirect(request.args.get("next") or url_for("main.index"))
+        return redirect(_safe_next() or url_for("main.index"))
 
     return render_template("writetrivia.html", triviaform=triviaform)
 
@@ -440,7 +459,7 @@ def edittrivias(id):
         tag_cache.update_item(trivia, old_tags, 'trivia')
         flash(f"Edited trivia with ID: {trivia.id}")
         return redirect(
-            request.args.get("next")
+            _safe_next()
             or url_for("main.trivia", id=trivia.id, header=trivia.header)
         )
     
@@ -462,4 +481,4 @@ def deletetrivias(id):
     db.session.delete(trivia)
     db.session.commit()
 
-    return redirect(request.args.get("next") or url_for("main.index"))
+    return redirect(_safe_next() or url_for("main.index"))
