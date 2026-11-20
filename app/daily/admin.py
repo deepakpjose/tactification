@@ -19,7 +19,7 @@ from flask_login import login_required
 from app import db
 from app.auth.decorators import admin_required
 from app.models import FactPuzzle
-from . import daily, schedule
+from . import daily, schedule, stats
 from .forms import FactPuzzleForm
 
 
@@ -63,6 +63,7 @@ def admin():
         queue=list(zip(queued, _queue_dates(queued, first_free))),
         drafts=drafts,
         past=past,
+        results=stats.summarise(([todays] if todays else []) + past),
     )
 
 

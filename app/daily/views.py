@@ -1,8 +1,9 @@
 """
 Public routes for the daily puzzle.
 
-  GET  /daily/        the game page
-  POST /daily/guess   the page's JavaScript sends each guess here
+  GET  /daily/          the game page
+  POST /daily/guess     the page's JavaScript sends each guess here
+  GET  /daily/archive   past puzzles with their answers and facts, newest first
 
 The answer never leaves the server until the game is over. The browser only
 ever receives `public_state()`: the colours of each guess, whichever facts are
@@ -16,7 +17,10 @@ clearing cookies starts the day's puzzle over, as in other daily word games.
 from flask import jsonify, render_template, request, session
 
 from app.main.views import _record_static_visit
-from . import daily, game, schedule
+from app.models import FactPuzzle
+from . import daily, game, schedule, stats
+
+ARCHIVE_PER_PAGE = 10
 
 SESSION_KEY = "daily_puzzle"
 
@@ -94,4 +98,29 @@ def guess():
 
     guesses.append(attempt)
     _save_guesses(puzzle, guesses)
+    # Totals for the admin page. Each is counted once per game: the first
+    # valid guess starts it, and any guess after the end is refused above.
+    if len(guesses) == 1:
+        stats.record_start(puzzle)
+    if game.is_over(guesses, puzzle.answer):
+        stats.record_finish(puzzle, won=guesses[-1] == puzzle.answer, guesses=len(guesses))
     return jsonify(state=public_state(puzzle, guesses))
+
+
+@daily.route("/archive", methods=["GET"])
+def archive():
+    """
+    Every puzzle that has already run, newest first, 10 to a page. Today's
+    puzzle is left out until tomorrow so the archive can't spoil it.
+    """
+    page = request.args.get("page", 1, type=int)
+    pagination = (FactPuzzle.query
+                  .filter(FactPuzzle.approved.is_(True), FactPuzzle.day.isnot(None),
+                          FactPuzzle.day < schedule.today())
+                  .order_by(FactPuzzle.day.desc())
+                  .paginate(page=page, per_page=ARCHIVE_PER_PAGE, error_out=False))
+    # Puzzle numbers count up from the first day, so on a newest-first list
+    # they count down from the total. Same numbers as schedule.puzzle_number().
+    first = pagination.total - (pagination.page - 1) * ARCHIVE_PER_PAGE
+    puzzles = [(first - i, puzzle) for i, puzzle in enumerate(pagination.items)]
+    return render_template("daily/archive.html", puzzles=puzzles, pagination=pagination)

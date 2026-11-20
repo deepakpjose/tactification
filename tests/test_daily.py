@@ -4,7 +4,7 @@ import pytest
 
 from app import db
 from app.daily import game, schedule
-from app.models import FactPuzzle, Role, User
+from app.models import DailyStats, FactPuzzle, Role, User
 
 DAY = date(2026, 11, 16)
 
@@ -276,3 +276,90 @@ def test_guess_that_is_not_text_is_refused_not_crashed(client, app_instance, tod
         response = client.post("/daily/guess", json=body)
         assert response.status_code == 400, body
         assert response.get_json()["state"]["rows"] == []  # not counted
+
+
+# ---- Totals (app/daily/stats.py) ----------------------------------------------
+
+def _totals(app_instance):
+    with app_instance.app_context():
+        row = DailyStats.query.one()
+        return (row.started, row.won, row.lost, row.won_guesses)
+
+
+def test_totals_count_starts_wins_and_losses(client, app_instance, today_is):
+    from app.daily import stats
+
+    with app_instance.app_context():
+        puzzle_id = _puzzle(day=DAY).id  # LINEKER, 7 guesses
+
+    # Player 1 wins on the 3rd guess; a guess after the end isn't counted.
+    for guess in ("STRIKER", "KEEPERS", "LINEKER", "LINEKER"):
+        client.post("/daily/guess", json={"guess": guess})
+    assert _totals(app_instance) == (1, 1, 0, 3)
+
+    # Player 2 (a fresh session) runs out of guesses.
+    with app_instance.test_client() as other:
+        for _ in range(7):
+            other.post("/daily/guess", json={"guess": "STRIKER"})
+    assert _totals(app_instance) == (2, 1, 1, 3)
+
+    # Player 3 makes one guess and leaves; a refused guess doesn't start a game.
+    with app_instance.test_client() as quitter:
+        quitter.post("/daily/guess", json={"guess": "ABC"})
+        assert _totals(app_instance) == (2, 1, 1, 3)
+        quitter.post("/daily/guess", json={"guess": "STRIKER"})
+    assert _totals(app_instance) == (3, 1, 1, 3)
+
+    with app_instance.app_context():
+        summary = stats.summarise([db.session.get(FactPuzzle, puzzle_id)])[puzzle_id]
+        assert summary == {"started": 3, "won": 1, "lost": 1, "unfinished": 1, "win_rate": 33, "average": 3.0}
+
+    _login_as_admin(client, app_instance)
+    page = client.get("/daily/admin").get_data(as_text=True)
+    assert "Didn't finish" in page and "(33%)" in page
+
+
+def test_totals_are_zero_before_anyone_plays(app_instance, today_is):
+    from app.daily import stats
+
+    with app_instance.app_context():
+        puzzle = _puzzle(day=DAY)
+        summary = stats.summarise([puzzle])[puzzle.id]
+        assert summary["started"] == 0 and summary["win_rate"] is None and summary["average"] is None
+
+
+# ---- Archive (/daily/archive) --------------------------------------------------
+
+def test_archive_lists_past_puzzles_newest_first_and_hides_today(client, app_instance, today_is):
+    with app_instance.app_context():
+        _puzzle("LINEKER", "Gary Lineker", day=DAY - timedelta(days=2),
+                fact_1="Never booked.", sources="https://en.wikipedia.org/wiki/Gary_Lineker\njavascript:alert(1)")
+        _puzzle("KLOSE", "Miroslav Klose", day=DAY - timedelta(days=1))
+        _puzzle("PELE", "Pelé", day=DAY)                               # today: must not show
+        _puzzle("DRAFT", "A draft", approved=False)                    # never ran
+        _puzzle("ZIDANE", "Zinedine Zidane", day=DAY + timedelta(days=3))  # pinned ahead
+    page = client.get("/daily/archive").get_data(as_text=True)
+    assert page.index("Miroslav Klose") < page.index("Gary Lineker")  # newest first
+    assert "#2 ·" in page and "#1 ·" in page
+    assert "Never booked." in page and "en.wikipedia.org" in page
+    assert "javascript:" not in page
+    for hidden in ("Pelé", "A draft", "Zinedine Zidane"):
+        assert hidden not in page
+
+
+def test_archive_pages_ten_at_a_time(client, app_instance, today_is):
+    with app_instance.app_context():
+        for n in range(1, 13):  # 12 past puzzles: #1 (oldest) .. #12 (yesterday)
+            _puzzle("ANSWER" + "ABCDEFGHIJKL"[n - 1], "Puzzle {:d}".format(n), day=DAY - timedelta(days=13 - n))
+    first = client.get("/daily/archive").get_data(as_text=True)
+    assert first.count('class="archive-card"') == 10
+    assert "Puzzle 12" in first and "Puzzle 3" in first and "Puzzle 2<" not in first
+    assert "Page 1 of 2" in first and "page=2" in first and "Newer" not in first
+
+    second = client.get("/daily/archive?page=2").get_data(as_text=True)
+    assert second.count('class="archive-card"') == 2
+    assert "#2 ·" in second and "#1 ·" in second
+    assert "Newer" in second and "Older" not in second
+
+    assert client.get("/daily/archive?page=99").status_code == 200  # empty page, no error
+

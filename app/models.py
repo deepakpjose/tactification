@@ -6,6 +6,7 @@ import re
 import secrets
 from datetime import datetime
 from random import sample
+from urllib.parse import urlparse
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from flask import current_app, url_for, Markup
@@ -534,5 +535,41 @@ class FactPuzzle(db.Model):
     def source_list(self):
         return [line.strip() for line in (self.sources or "").splitlines() if line.strip()]
 
+    def web_sources(self):
+        """(url, site name) for each http(s) source -- the only ones safe to link."""
+        links = []
+        for url in self.source_list():
+            parts = urlparse(url)
+            if parts.scheme in ("http", "https") and parts.netloc:
+                links.append((url, parts.netloc.lower().replace("www.", "", 1)))
+        return links
+
     def __repr__(self):
         return "<FactPuzzle %r day=%s approved=%r>" % (self.answer, self.day, self.approved)
+
+
+
+class DailyStats(db.Model):
+    """
+    Running totals for one daily puzzle, for the admin page. Only counts are
+    kept -- nothing about individual games or players.
+
+      started      players who made a first valid guess
+      won / lost   games that ended solved / out of guesses
+      won_guesses  guesses used across all won games, so the average for a
+                   win is won_guesses / won
+
+    started - won - lost is how many gave up part way. Counts go up in
+    app/daily/stats.py; someone who clears cookies and replays counts again.
+    """
+
+    __tablename__ = "daily_stats"
+    puzzle_id = db.Column(db.Integer, db.ForeignKey("fact_puzzles.id", ondelete="CASCADE"), primary_key=True)
+    started = db.Column(db.Integer, default=0, nullable=False)
+    won = db.Column(db.Integer, default=0, nullable=False)
+    lost = db.Column(db.Integer, default=0, nullable=False)
+    won_guesses = db.Column(db.Integer, default=0, nullable=False)
+
+    def __repr__(self):
+        return "<DailyStats puzzle=%r started=%d won=%d lost=%d>" % (
+            self.puzzle_id, self.started, self.won, self.lost)

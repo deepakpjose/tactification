@@ -205,7 +205,7 @@ def sitemap():
     host_components = urlparse(request.host_url)
     host_base = host_components.scheme + "://" + host_components.netloc
 
-    static_url_list = {"home": "main.index", "daily": "daily.play"}
+    static_url_list = {"home": "main.index", "daily": "daily.play", "daily_archive": "daily.archive"}
     # Static routes with static content
     static_urls = list()
     for key, value in static_url_list.items():

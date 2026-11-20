@@ -53,7 +53,7 @@
 
   {% if not state %}
   {# No approved puzzle is queued for today. #}
-  <p class="daily-empty">There's no puzzle today. Check back tomorrow.</p>
+  <p class="daily-empty">There's no puzzle today. Check back tomorrow, or <a href="{{ url_for('daily.archive') }}">look through past puzzles</a>.</p>
   </div>
   {% else %}
 
@@ -96,7 +96,7 @@
       <button class="btn btn-success" id="daily-copy" type="button">Copy result</button>
       <span class="daily-note" id="daily-copy-status"></span>
     </div>
-    <p class="daily-note">A new puzzle is up at midnight UTC.</p>
+    <p class="daily-note">A new puzzle is up at midnight UTC. <a href="{{ url_for('daily.archive') }}">See past puzzles</a></p>
   </section>
 
   {# The initial state goes in as JSON, so the page draws straight away
