@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{# Past daily puzzles, newest first, 10 a page. Route: archive() in
+   app/daily/views.py. Today's puzzle never appears here. #}
+
+{% block meta %}
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="description" content="Every past Tactification Daily puzzle: the answer and the facts behind it.">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+<style>
+  .archive-card { border: 1px solid #e0e6ed; border-left: 4px solid #0a8c4a; border-radius: 10px; padding: 14px 16px; margin-bottom: 14px; background: #fff; }
+  .archive-meta { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #5b6880; }
+  .archive-answer { font-size: 1.35rem; font-weight: 800; text-transform: uppercase; margin: 2px 0 8px; }
+  .archive-topic { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #0a8c4a;
+    border: 1px solid #0a8c4a; border-radius: 999px; padding: 2px 8px; vertical-align: middle; margin-left: 6px; }
+  .archive-facts { margin: 0 0 6px; padding-left: 1.2rem; }
+  .archive-facts li { margin-bottom: 4px; font-style: italic; }
+  .archive-sources { font-size: 0.85rem; margin: 0; }
+  .archive-sources a { color: #0a8c4a; }
+</style>
+{% endblock %}
+
+{% block title %}
+<title>Past puzzles | Tactification Daily</title>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <h2 class="mb-0">Past puzzles</h2>
+  <a class="btn btn-success btn-sm" href="{{ url_for('daily.play') }}">Play today's puzzle</a>
+</div>
+
+{% for number, puzzle in puzzles %}
+<article class="archive-card">
+  <div class="archive-meta">#{{ number }} · {{ puzzle.day.strftime('%a %d %b %Y') }}</div>
+  <h3 class="archive-answer">{{ puzzle.display }}<span class="archive-topic">{{ puzzle.topic }}</span></h3>
+  <ol class="archive-facts">
+    {% for fact in puzzle.facts() %}<li>{{ fact }}</li>{% endfor %}
+  </ol>
+  {% set links = puzzle.web_sources() %}
+  {% if links %}
+  <p class="archive-sources">Read more:
+    {% for url, site in links %}<a href="{{ url }}" target="_blank" rel="noopener noreferrer">{{ site }} ↗</a>{% if not loop.last %} · {% endif %}{% endfor %}
+  </p>
+  {% endif %}
+</article>
+{% else %}
+<p class="text-muted">No past puzzles yet. Today's is the first one.</p>
+{% endfor %}
+
+{% if pagination.pages > 1 %}
+<nav class="d-flex justify-content-center align-items-center gap-3 my-4" aria-label="Past puzzle pages">
+  {% if pagination.has_prev %}
+  <a href="{{ url_for('daily.archive', page=pagination.prev_num) }}" class="btn btn-outline-dark">‹ Newer</a>
+  {% endif %}
+  <span class="text-muted small">Page {{ pagination.page }} of {{ pagination.pages }}</span>
+  {% if pagination.has_next %}
+  <a href="{{ url_for('daily.archive', page=pagination.next_num) }}" class="btn btn-outline-dark">Older ›</a>
+  {% endif %}
+</nav>
+{% endif %}
+{% endblock %}
